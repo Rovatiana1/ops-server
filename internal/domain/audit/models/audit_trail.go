@@ -11,6 +11,7 @@ import (
 // ─── Énumérations ─────────────────────────────────────────────────────────────
 
 // AuditAction représente l'opération effectuée sur une ressource.
+// @Enum CREATE, UPDATE, DELETE, READ, LOGIN, LOGOUT, EXPORT
 type AuditAction string
 
 const (
@@ -33,6 +34,7 @@ func (a AuditAction) IsValid() bool {
 }
 
 // AuditOutcome représente le résultat de l'opération.
+// @Enum success,failure,denied
 type AuditOutcome string
 
 const (

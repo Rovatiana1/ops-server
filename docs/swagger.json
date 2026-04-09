@@ -1,0 +1,536 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "MyApp API",
+      "description": "Plateforme backend ETL event-driven — API REST documentée",
+      "contact": {
+        "name": "MyApp Support",
+        "email": "support@myapp.local"
+      },
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      },
+      "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "schemes": ["http", "https"],
+    "consumes": ["application/json"],
+    "produces": ["application/json"],
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "JWT token au format: Bearer \u003ctoken\u003e"
+      }
+    },
+    "tags": [
+      { "name": "auth",          "description": "Authentification et gestion des tokens JWT" },
+      { "name": "users",         "description": "Gestion des utilisateurs" },
+      { "name": "notifications", "description": "Notifications utilisateur" },
+      { "name": "metrics",       "description": "Métriques et événements applicatifs" },
+      { "name": "audit",         "description": "Traçabilité et logs système" }
+    ],
+    "paths": {
+      "/auth/register": {
+        "post": {
+          "tags": ["auth"],
+          "summary": "Créer un compte",
+          "description": "Inscription d'un nouvel utilisateur",
+          "operationId": "register",
+          "parameters": [{
+            "in": "body", "name": "body", "required": true,
+            "schema": { "$ref": "#/definitions/CreateUserInput" }
+          }],
+          "responses": {
+            "201": { "description": "Utilisateur créé",   "schema": { "$ref": "#/definitions/APIResponse" } },
+            "400": { "description": "Validation error",   "schema": { "$ref": "#/definitions/ErrorResponse" } },
+            "409": { "description": "Email déjà utilisé", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/auth/signin": {
+        "post": {
+          "tags": ["auth"],
+          "summary": "Authentification",
+          "description": "Connexion et obtention des tokens JWT",
+          "operationId": "signin",
+          "parameters": [{
+            "in": "body", "name": "body", "required": true,
+            "schema": { "$ref": "#/definitions/SignInInput" }
+          }],
+          "responses": {
+            "200": { "description": "Tokens JWT",      "schema": { "$ref": "#/definitions/AuthAPIResponse" } },
+            "401": { "description": "Identifiants invalides", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/auth/refresh": {
+        "post": {
+          "tags": ["auth"],
+          "summary": "Renouveler le token",
+          "description": "Échange un refresh token contre de nouveaux tokens",
+          "operationId": "refreshToken",
+          "parameters": [{
+            "in": "body", "name": "body", "required": true,
+            "schema": { "$ref": "#/definitions/RefreshTokenInput" }
+          }],
+          "responses": {
+            "200": { "description": "Nouveaux tokens", "schema": { "$ref": "#/definitions/AuthAPIResponse" } },
+            "401": { "description": "Token invalide",  "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/auth/logout": {
+        "post": {
+          "tags": ["auth"],
+          "summary": "Déconnexion",
+          "description": "Révoque le refresh token de l'utilisateur connecté",
+          "operationId": "logout",
+          "security": [{ "BearerAuth": [] }],
+          "responses": {
+            "200": { "description": "Déconnecté",    "schema": { "$ref": "#/definitions/APIResponse" } },
+            "401": { "description": "Non authentifié", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/users/me": {
+        "get": {
+          "tags": ["users"],
+          "summary": "Mon profil",
+          "description": "Retourne le profil de l'utilisateur connecté",
+          "operationId": "getMe",
+          "security": [{ "BearerAuth": [] }],
+          "responses": {
+            "200": { "description": "Profil utilisateur", "schema": { "$ref": "#/definitions/UserAPIResponse" } },
+            "401": { "description": "Non authentifié",   "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/users": {
+        "get": {
+          "tags": ["users"],
+          "summary": "Lister les utilisateurs (admin)",
+          "operationId": "listUsers",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "offset", "type": "integer", "description": "Offset" },
+            { "in": "query", "name": "limit",  "type": "integer", "description": "Limite (max 100)" }
+          ],
+          "responses": {
+            "200": { "description": "Liste paginée", "schema": { "$ref": "#/definitions/UserListAPIResponse" } },
+            "403": { "description": "Accès refusé", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/users/{id}": {
+        "get": {
+          "tags": ["users"],
+          "summary": "Obtenir un utilisateur (admin)",
+          "operationId": "getUser",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Utilisateur",   "schema": { "$ref": "#/definitions/UserAPIResponse" } },
+            "404": { "description": "Non trouvé",    "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        },
+        "patch": {
+          "tags": ["users"],
+          "summary": "Mettre à jour un utilisateur",
+          "operationId": "updateUser",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" },
+            { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateUserInput" } }
+          ],
+          "responses": {
+            "200": { "description": "Mis à jour", "schema": { "$ref": "#/definitions/UserAPIResponse" } },
+            "404": { "description": "Non trouvé", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        },
+        "delete": {
+          "tags": ["users"],
+          "summary": "Supprimer un utilisateur (soft-delete)",
+          "operationId": "deleteUser",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Supprimé",   "schema": { "$ref": "#/definitions/APIResponse" } },
+            "404": { "description": "Non trouvé", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/users/{id}/roles": {
+        "post": {
+          "tags": ["users"],
+          "summary": "Assigner un rôle (admin)",
+          "operationId": "assignRole",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" },
+            { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/AssignRoleInput" } }
+          ],
+          "responses": {
+            "200": { "description": "Rôle assigné", "schema": { "$ref": "#/definitions/APIResponse" } },
+            "400": { "description": "Invalide",     "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/notifications": {
+        "get": {
+          "tags": ["notifications"],
+          "summary": "Mes notifications",
+          "operationId": "listNotifications",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "offset", "type": "integer" },
+            { "in": "query", "name": "limit",  "type": "integer" },
+            { "in": "query", "name": "status", "type": "string", "enum": ["pending","sent","failed","read"] },
+            { "in": "query", "name": "type",   "type": "string", "enum": ["email","push","in_app","sms"] }
+          ],
+          "responses": {
+            "200": { "description": "Liste", "schema": { "$ref": "#/definitions/NotificationListAPIResponse" } }
+          }
+        }
+      },
+      "/notifications/unread-count": {
+        "get": {
+          "tags": ["notifications"],
+          "summary": "Nombre de non-lues",
+          "operationId": "countUnread",
+          "security": [{ "BearerAuth": [] }],
+          "responses": {
+            "200": { "description": "Compteur", "schema": { "$ref": "#/definitions/APIResponse" } }
+          }
+        }
+      },
+      "/notifications/{id}/read": {
+        "patch": {
+          "tags": ["notifications"],
+          "summary": "Marquer comme lue",
+          "operationId": "markAsRead",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Lue", "schema": { "$ref": "#/definitions/APIResponse" } }
+          }
+        }
+      },
+      "/notifications/{id}": {
+        "delete": {
+          "tags": ["notifications"],
+          "summary": "Supprimer une notification",
+          "operationId": "deleteNotification",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Supprimée", "schema": { "$ref": "#/definitions/APIResponse" } }
+          }
+        }
+      },
+      "/metrics": {
+        "get": {
+          "tags": ["metrics"],
+          "summary": "Lister les métriques",
+          "operationId": "listMetrics",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "name",   "type": "string" },
+            { "in": "query", "name": "type",   "type": "string", "enum": ["counter","gauge","histogram"] },
+            { "in": "query", "name": "period", "type": "string", "enum": ["realtime","hourly","daily","weekly","monthly"] },
+            { "in": "query", "name": "from",   "type": "string", "format": "date-time" },
+            { "in": "query", "name": "to",     "type": "string", "format": "date-time" },
+            { "in": "query", "name": "offset", "type": "integer" },
+            { "in": "query", "name": "limit",  "type": "integer" }
+          ],
+          "responses": {
+            "200": { "description": "Liste", "schema": { "$ref": "#/definitions/MetricListAPIResponse" } }
+          }
+        }
+      },
+      "/metrics/events": {
+        "get": {
+          "tags": ["metrics"],
+          "summary": "Lister les événements",
+          "operationId": "listEvents",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "severity", "type": "string", "enum": ["info","warning","critical"] },
+            { "in": "query", "name": "category", "type": "string", "enum": ["auth","user","system","ingestion","api"] },
+            { "in": "query", "name": "from",     "type": "string", "format": "date-time" },
+            { "in": "query", "name": "to",       "type": "string", "format": "date-time" },
+            { "in": "query", "name": "offset",   "type": "integer" },
+            { "in": "query", "name": "limit",    "type": "integer" }
+          ],
+          "responses": {
+            "200": { "description": "Liste", "schema": { "$ref": "#/definitions/EventListAPIResponse" } }
+          }
+        }
+      },
+      "/metrics/events/{id}": {
+        "get": {
+          "tags": ["metrics"],
+          "summary": "Détail d'un événement",
+          "operationId": "getEvent",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Événement", "schema": { "$ref": "#/definitions/EventAPIResponse" } },
+            "404": { "description": "Non trouvé", "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/audit/trails": {
+        "get": {
+          "tags": ["audit"],
+          "summary": "Lister les audit trails (admin)",
+          "operationId": "listTrails",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "resource", "type": "string" },
+            { "in": "query", "name": "action",   "type": "string", "enum": ["CREATE","UPDATE","DELETE","READ","LOGIN","LOGOUT","EXPORT"] },
+            { "in": "query", "name": "outcome",  "type": "string", "enum": ["success","failure","denied"] },
+            { "in": "query", "name": "userId",   "type": "string", "format": "uuid" },
+            { "in": "query", "name": "from",     "type": "string", "format": "date-time" },
+            { "in": "query", "name": "to",       "type": "string", "format": "date-time" },
+            { "in": "query", "name": "offset",   "type": "integer" },
+            { "in": "query", "name": "limit",    "type": "integer" }
+          ],
+          "responses": {
+            "200": { "description": "Liste", "schema": { "$ref": "#/definitions/AuditListAPIResponse" } }
+          }
+        }
+      },
+      "/audit/trails/{id}": {
+        "get": {
+          "tags": ["audit"],
+          "summary": "Détail d'un audit trail",
+          "operationId": "getTrail",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string", "format": "uuid" }],
+          "responses": {
+            "200": { "description": "Audit trail", "schema": { "$ref": "#/definitions/AuditAPIResponse" } },
+            "404": { "description": "Non trouvé",  "schema": { "$ref": "#/definitions/ErrorResponse" } }
+          }
+        }
+      },
+      "/audit/logs": {
+        "get": {
+          "tags": ["audit"],
+          "summary": "Lister les logs applicatifs (admin)",
+          "operationId": "listLogs",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            { "in": "query", "name": "level",     "type": "string", "enum": ["debug","info","warning","error","fatal"] },
+            { "in": "query", "name": "service",   "type": "string" },
+            { "in": "query", "name": "traceId",   "type": "string" },
+            { "in": "query", "name": "requestId", "type": "string" },
+            { "in": "query", "name": "from",      "type": "string", "format": "date-time" },
+            { "in": "query", "name": "to",        "type": "string", "format": "date-time" },
+            { "in": "query", "name": "offset",    "type": "integer" },
+            { "in": "query", "name": "limit",     "type": "integer" }
+          ],
+          "responses": {
+            "200": { "description": "Liste", "schema": { "$ref": "#/definitions/LogListAPIResponse" } }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "APIResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string",  "example": "ok" },
+          "data":    {}
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "code":    { "type": "string",  "example": "NOT_FOUND" },
+          "message": { "type": "string",  "example": "resource not found" },
+          "details": {}
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total":  { "type": "integer", "example": 100 },
+          "offset": { "type": "integer", "example": 0 },
+          "limit":  { "type": "integer", "example": 20 }
+        }
+      },
+      "CreateUserInput": {
+        "type": "object",
+        "required": ["email","password","firstName","lastName"],
+        "properties": {
+          "email":     { "type": "string", "format": "email",    "example": "alice@example.com" },
+          "password":  { "type": "string", "minLength": 8,       "example": "Secret1234!" },
+          "firstName": { "type": "string",                       "example": "Alice" },
+          "lastName":  { "type": "string",                       "example": "Dupont" }
+        }
+      },
+      "UpdateUserInput": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string",  "example": "Alice" },
+          "lastName":  { "type": "string",  "example": "Martin" },
+          "isActive":  { "type": "boolean", "example": true }
+        }
+      },
+      "SignInInput": {
+        "type": "object",
+        "required": ["email","password"],
+        "properties": {
+          "email":    { "type": "string", "format": "email", "example": "alice@example.com" },
+          "password": { "type": "string",                    "example": "Secret1234!" }
+        }
+      },
+      "RefreshTokenInput": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        }
+      },
+      "AssignRoleInput": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "userId":    { "type": "string", "format": "uuid" },
+          "email":     { "type": "string" },
+          "firstName": { "type": "string" },
+          "lastName":  { "type": "string" },
+          "isActive":  { "type": "boolean" },
+          "roles":     { "type": "array", "items": { "$ref": "#/definitions/UserRoleResponse" } },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserRoleResponse": {
+        "type": "object",
+        "properties": {
+          "userId":     { "type": "string", "format": "uuid" },
+          "role":       { "$ref": "#/definitions/RoleResponse" },
+          "assignedBy": { "type": "string", "format": "uuid" },
+          "assignedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "roleId":      { "type": "string", "format": "uuid" },
+          "name":        { "type": "string", "enum": ["admin","manager","user","viewer"] },
+          "displayName": { "type": "string" },
+          "isSystem":    { "type": "boolean" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken":  { "type": "string" },
+          "refreshToken": { "type": "string" },
+          "user":         { "$ref": "#/definitions/UserResponse" }
+        }
+      },
+      "NotificationResponse": {
+        "type": "object",
+        "properties": {
+          "notificationId": { "type": "string", "format": "uuid" },
+          "userId":         { "type": "string", "format": "uuid" },
+          "type":           { "type": "string", "enum": ["email","push","in_app","sms"] },
+          "status":         { "type": "string", "enum": ["pending","sent","failed","read"] },
+          "title":          { "type": "string" },
+          "body":           { "type": "string" },
+          "readAt":         { "type": "string", "format": "date-time" },
+          "sentAt":         { "type": "string", "format": "date-time" },
+          "retryCount":     { "type": "integer" },
+          "createdAt":      { "type": "string", "format": "date-time" }
+        }
+      },
+      "MetricResponse": {
+        "type": "object",
+        "properties": {
+          "metricId":   { "type": "string", "format": "uuid" },
+          "name":       { "type": "string" },
+          "type":       { "type": "string", "enum": ["counter","gauge","histogram"] },
+          "value":      { "type": "number", "format": "double" },
+          "labels":     { "type": "object", "additionalProperties": { "type": "string" } },
+          "period":     { "type": "string" },
+          "source":     { "type": "string" },
+          "recordedAt": { "type": "string", "format": "date-time" },
+          "createdAt":  { "type": "string", "format": "date-time" }
+        }
+      },
+      "EventResponse": {
+        "type": "object",
+        "properties": {
+          "eventId":     { "type": "string", "format": "uuid" },
+          "name":        { "type": "string" },
+          "severity":    { "type": "string", "enum": ["info","warning","critical"] },
+          "category":    { "type": "string", "enum": ["auth","user","system","ingestion","api"] },
+          "source":      { "type": "string" },
+          "userId":      { "type": "string", "format": "uuid" },
+          "description": { "type": "string" },
+          "payload":     { "type": "object" },
+          "occurredAt":  { "type": "string", "format": "date-time" },
+          "createdAt":   { "type": "string", "format": "date-time" }
+        }
+      },
+      "AuditTrailResponse": {
+        "type": "object",
+        "properties": {
+          "auditId":    { "type": "string", "format": "uuid" },
+          "userId":     { "type": "string", "format": "uuid" },
+          "action":     { "type": "string", "enum": ["CREATE","UPDATE","DELETE","READ","LOGIN","LOGOUT","EXPORT"] },
+          "outcome":    { "type": "string", "enum": ["success","failure","denied"] },
+          "resource":   { "type": "string" },
+          "resourceId": { "type": "string" },
+          "oldValues":  { "type": "object" },
+          "newValues":  { "type": "object" },
+          "ipAddress":  { "type": "string" },
+          "requestId":  { "type": "string" },
+          "statusCode": { "type": "integer" },
+          "error":      { "type": "string" },
+          "createdAt":  { "type": "string", "format": "date-time" }
+        }
+      },
+      "LogResponse": {
+        "type": "object",
+        "properties": {
+          "logId":      { "type": "string", "format": "uuid" },
+          "level":      { "type": "string", "enum": ["debug","info","warning","error","fatal"] },
+          "message":    { "type": "string" },
+          "service":    { "type": "string" },
+          "traceId":    { "type": "string" },
+          "requestId":  { "type": "string" },
+          "userId":     { "type": "string", "format": "uuid" },
+          "fields":     { "type": "object" },
+          "callerFile": { "type": "string" },
+          "callerLine": { "type": "integer" },
+          "createdAt":  { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserAPIResponse":         { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "$ref": "#/definitions/UserResponse" } } },
+      "AuthAPIResponse":         { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "$ref": "#/definitions/AuthResponse" } } },
+      "EventAPIResponse":        { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "$ref": "#/definitions/EventResponse" } } },
+      "AuditAPIResponse":        { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "$ref": "#/definitions/AuditTrailResponse" } } },
+      "UserListAPIResponse":         { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/UserResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } },
+      "NotificationListAPIResponse": { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/NotificationResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } },
+      "MetricListAPIResponse":       { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/MetricResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } },
+      "EventListAPIResponse":        { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/EventResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } },
+      "AuditListAPIResponse":        { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/AuditTrailResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } },
+      "LogListAPIResponse":          { "allOf": [{ "$ref": "#/definitions/APIResponse" }], "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/definitions/LogResponse" } }, "total": { "type": "integer" }, "offset": { "type": "integer" }, "limit": { "type": "integer" } } } } }
+    }
+  }

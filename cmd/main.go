@@ -80,6 +80,8 @@ func main() {
 	_ = redisInfra.NewRateLimiter(redisClient)
 
 	// ── 5. Kafka ───────────────────────────────────────────────────────────────
+	fmt.Println("SIGNIN TOPIC =", cfg.Kafka.Topics.Signin)
+
 	if err := kafkaCore.DialBroker(cfg.Kafka); err != nil {
 		log.Fatal("kafka failed", zap.Error(err))
 	}

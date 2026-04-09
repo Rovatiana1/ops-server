@@ -11,6 +11,7 @@ import (
 // ─── Énumérations ─────────────────────────────────────────────────────────────
 
 // LogLevel représente la sévérité d'un log applicatif persisté.
+// @Enum debug,info,warning,error,fatal
 type LogLevel string
 
 const (
