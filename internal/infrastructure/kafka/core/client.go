@@ -28,7 +28,8 @@ func DialBroker(cfg configs.KafkaConfig) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	conn, err := kafka.DialLeader(ctx, "tcp", cfg.Brokers[0], "", 0)
+	// conn, err := kafka.DialContext(ctx, "tcp", cfg.Brokers[0])
+	conn, err := kafka.DialLeader(ctx, "tcp", cfg.Brokers[0], "user.signin", 0) // La lib kafka-go fait : DialLeader = se connecter au leader d’un topic + partition sinon utiliser kafka.DialContext
 	if err != nil {
 		return fmt.Errorf("kafka dial failed (%s:%d): %w", host, port, err)
 	}
