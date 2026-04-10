@@ -2,7 +2,7 @@
 
 APP_NAME := ops-server
 BINARY   := ./bin/$(APP_NAME)
-MAIN     := ./cmd/api/main.go
+MAIN     := ./cmd/main.go
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 build:

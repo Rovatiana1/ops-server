@@ -5,10 +5,10 @@ app:
   debug: true
 
 database:
-  host: "localhost"
+  host: "db1.easytech.mg"
   port: 5432
-  user: "postgres"
-  password: "postgres"
+  user: "user_sampling"
+  password: "$user_sampling$"
   name: "ops-server"
   sslmode: "disable"
   max_open_conns: 25
@@ -27,7 +27,7 @@ redis:
 
 kafka:
   brokers:
-    - "localhost:9092"
+    - "10.128.1.148:31636"
   group_id: "ops-server-consumer-group"
   topics:
     signin: "user.signin"
