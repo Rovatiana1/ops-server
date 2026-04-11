@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"go.uber.org/zap"
 
 	"ops-server/configs"
@@ -127,6 +128,15 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	engine := gin.New()
+	engine.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // ou ton frontend URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	routes.Setup(engine, uCtrl, nCtrl, mCtrl, aCtrl, cfg.JWT)
 
 	srv := &http.Server{

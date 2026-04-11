@@ -85,10 +85,10 @@ func Setup(
 		notifs.DELETE("/:id", notifC.DeleteNotification)
 	}
 
-	// ── Metrics (admin + manager) ──────────────────────────────────────────────
+	// ── Metrics (admin + ops) ──────────────────────────────────────────────
 	met := v1.Group("/metrics",
 		middleware.Auth(jwtCfg),
-		middleware.RequireRole(models.RoleNameAdmin, models.RoleNameManager),
+		middleware.RequireRole(models.RoleNameAdmin, models.RoleNameOps),
 	)
 	{
 		met.GET("", metricsC.ListMetrics)

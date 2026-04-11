@@ -34,6 +34,13 @@ swagger:
 		--parseInternal \
 		--generatedTime
 	@echo "✅  Swagger: http://localhost:8080/swagger/index.html"
+# swag init \
+#   -g ./cmd/main.go \
+#   -d .,./internal/interfaces/http \
+#   -o ./docs \
+#   --parseDependency \
+#   --parseInternal
+
 
 # ── Lint ───────────────────────────────────────────────────────────────────────
 lint:

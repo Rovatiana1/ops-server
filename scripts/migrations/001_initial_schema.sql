@@ -11,11 +11,12 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS users (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email       VARCHAR(255)    NOT NULL,
+    identifier  VARCHAR(50)    NOT NULL,
     password    VARCHAR(255)    NOT NULL,
     first_name  VARCHAR(100)    NOT NULL,
     last_name   VARCHAR(100)    NOT NULL,
-    role        VARCHAR(20)     NOT NULL DEFAULT 'user'
-                    CHECK (role IN ('admin', 'manager', 'user', 'viewer')),
+    role        VARCHAR(20)     NOT NULL DEFAULT 'viewer'
+                    CHECK (role IN ('admin', 'ops', 'viewer')),
     is_active   BOOLEAN         NOT NULL DEFAULT TRUE,
     metadata    JSONB,
     created_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
@@ -23,14 +24,14 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at  TIMESTAMPTZ     -- soft delete (NULL = not deleted)
 );
 
--- Unique email among non-deleted users
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_active
-    ON users (email)
+-- Unique identifier among non-deleted users
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_identifier_active
+    ON users (identifier)
     WHERE deleted_at IS NULL;
 
--- Fast lookup by email (authentication)
-CREATE INDEX IF NOT EXISTS idx_users_email
-    ON users (email);
+-- Fast lookup by identifier (authentication)
+CREATE INDEX IF NOT EXISTS idx_users_identifier
+    ON users (identifier);
 
 -- Soft-delete filter (GORM uses this automatically)
 CREATE INDEX IF NOT EXISTS idx_users_deleted_at
@@ -61,9 +62,10 @@ CREATE TRIGGER trigger_users_updated_at
 
 -- ── Seed: default admin user ─────────────────────────────────────────────────
 -- Password: Admin@1234 (bcrypt, cost=10) — CHANGE IN PRODUCTION
-INSERT INTO users (id, email, password, first_name, last_name, role, is_active)
+INSERT INTO users (id, identifier, email, password, first_name, last_name, role, is_active)
 VALUES (
     gen_random_uuid(),
+    'admin',
     'admin@ops-server.local',
     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
     'Super',
@@ -203,8 +205,7 @@ CREATE INDEX IF NOT EXISTS idx_logs_trace_id   ON logs (trace_id) WHERE trace_id
 -- ── Seed roles système ────────────────────────────────────────────────────────
 INSERT INTO roles (name, display_name, description, is_system) VALUES
   ('admin',   'Administrateur', 'Accès complet',        TRUE),
-  ('manager', 'Manager',        'Gestion opérationnelle', TRUE),
-  ('user',    'Utilisateur',    'Accès standard',        TRUE),
+  ('ops', 'Ops',        'Gestion opérationnelle', TRUE),
   ('viewer',  'Observateur',    'Lecture seule',          TRUE)
 ON CONFLICT DO NOTHING;
 

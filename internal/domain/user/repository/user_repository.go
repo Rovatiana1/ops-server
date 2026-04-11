@@ -13,11 +13,11 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
 	FindByID(ctx context.Context, id uuid.UUID) (*models.User, error)
-	FindByEmail(ctx context.Context, email string) (*models.User, error)
+	FindByIdentifier(ctx context.Context, identifier string) (*models.User, error)
 	Update(ctx context.Context, user *models.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, offset, limit int) ([]*models.User, int64, error)
-	ExistsByEmail(ctx context.Context, email string) (bool, error)
+	ExistsByIdentifier(ctx context.Context, identifier string) (bool, error)
 	AssignRole(ctx context.Context, userID, roleID, assignedBy uuid.UUID) error
 	RemoveRole(ctx context.Context, userID, roleID uuid.UUID) error
 	GetRoles(ctx context.Context, userID uuid.UUID) ([]models.UserRole, error)
@@ -47,11 +47,11 @@ func (r *userRepository) FindByID(ctx context.Context, id uuid.UUID) (*models.Us
 	return &user, nil
 }
 
-func (r *userRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+func (r *userRepository) FindByIdentifier(ctx context.Context, identifier string) (*models.User, error) {
 	var user models.User
 	err := r.db.WithContext(ctx).
 		Preload("UserRoles.Role.Permissions").
-		Where("email = ?", email).
+		Where("identifier = ?", identifier).
 		First(&user).Error
 	if err != nil {
 		return nil, err
@@ -87,11 +87,11 @@ func (r *userRepository) List(ctx context.Context, offset, limit int) ([]*models
 	return users, total, err
 }
 
-func (r *userRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+func (r *userRepository) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&models.User{}).
-		Where("email = ?", email).
+		Where("identifier = ?", identifier).
 		Count(&count).Error
 	return count > 0, err
 }

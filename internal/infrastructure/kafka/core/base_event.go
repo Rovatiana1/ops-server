@@ -17,11 +17,11 @@ const (
 // BaseEvent is the envelope wrapping every Kafka message.
 // All domain events embed or compose this struct.
 type BaseEvent struct {
-	EventID   string    `json:"eventId"`   // UUID v4 — used for idempotency
-	EventType EventType `json:"eventType"`
+	EventID    string    `json:"eventId"` // UUID v4 — used for idempotency
+	EventType  EventType `json:"eventType"`
 	OccurredAt time.Time `json:"occurredAt"`
-	Version   int       `json:"version"`   // schema version for forward-compat
-	TraceID   string    `json:"traceId,omitempty"`
+	Version    int       `json:"version"` // schema version for forward-compat
+	TraceID    string    `json:"traceId,omitempty"`
 }
 
 // NewBaseEvent creates a BaseEvent with a fresh UUID and current timestamp.
@@ -39,15 +39,15 @@ func NewBaseEvent(t EventType) BaseEvent {
 // UserSignupEvent is published when a user completes registration.
 type UserSignupEvent struct {
 	BaseEvent
-	UserID    string `json:"userId"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	UserID     string `json:"userId"`
+	Identifier string `json:"identifier"`
+	FirstName  string `json:"firstName"`
+	LastName   string `json:"lastName"`
 }
 
 // UserSigninEvent is published after a successful sign-in.
 type UserSigninEvent struct {
 	BaseEvent
-	UserID string `json:"userId"`
-	Email  string `json:"email"`
+	UserID     string `json:"userId"`
+	Identifier string `json:"identifier"`
 }

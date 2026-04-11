@@ -1,4 +1,1179 @@
+definitions:
+  ops-server_internal_domain_audit_models.AuditAction:
+    description: Type pour Swagger
+    enum:
+    - CREATE
+    - UPDATE
+    - DELETE
+    - READ
+    - LOGIN
+    - LOGOUT
+    - EXPORT
+    type: string
+    x-enum-varnames:
+    - AuditActionCreate
+    - AuditActionUpdate
+    - AuditActionDelete
+    - AuditActionRead
+    - AuditActionLogin
+    - AuditActionLogout
+    - AuditActionExport
+  ops-server_internal_domain_audit_models.AuditOutcome:
+    enum:
+    - success
+    - failure
+    - denied
+    type: string
+    x-enum-varnames:
+    - AuditOutcomeSuccess
+    - AuditOutcomeFailure
+    - AuditOutcomeDenied
+  ops-server_internal_domain_audit_models.AuditTrailResponse:
+    description: Représentation publique d'un audit trail
+    properties:
+      action:
+        $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditAction'
+      auditId:
+        type: string
+      createdAt:
+        type: string
+      error:
+        type: string
+      ipAddress:
+        type: string
+      newValues:
+        additionalProperties: {}
+        type: object
+      oldValues:
+        additionalProperties: {}
+        type: object
+      outcome:
+        $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditOutcome'
+      requestId:
+        type: string
+      resource:
+        type: string
+      resourceId:
+        type: string
+      statusCode:
+        type: integer
+      userId:
+        type: string
+    type: object
+  ops-server_internal_domain_audit_models.LogLevel:
+    enum:
+    - debug
+    - info
+    - warning
+    - error
+    - fatal
+    type: string
+    x-enum-varnames:
+    - LogLevelDebug
+    - LogLevelInfo
+    - LogLevelWarning
+    - LogLevelError
+    - LogLevelFatal
+  ops-server_internal_domain_audit_models.LogResponse:
+    description: Représentation publique d'un log applicatif persisté
+    properties:
+      callerFile:
+        type: string
+      callerLine:
+        type: integer
+      createdAt:
+        type: string
+      fields:
+        additionalProperties: {}
+        type: object
+      level:
+        $ref: '#/definitions/ops-server_internal_domain_audit_models.LogLevel'
+      logId:
+        type: string
+      message:
+        type: string
+      requestId:
+        type: string
+      service:
+        type: string
+      traceId:
+        type: string
+      userId:
+        type: string
+    type: object
+  ops-server_internal_domain_metrics_models.EventCategory:
+    enum:
+    - auth
+    - user
+    - system
+    - ingestion
+    - api
+    type: string
+    x-enum-varnames:
+    - EventCategoryAuth
+    - EventCategoryUser
+    - EventCategorySystem
+    - EventCategoryIngestion
+    - EventCategoryAPI
+  ops-server_internal_domain_metrics_models.EventResponse:
+    description: Représentation publique d'un événement observable
+    properties:
+      category:
+        $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventCategory'
+      createdAt:
+        type: string
+      description:
+        type: string
+      eventId:
+        type: string
+      name:
+        type: string
+      occurredAt:
+        type: string
+      payload:
+        additionalProperties: {}
+        type: object
+      requestId:
+        type: string
+      severity:
+        $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventSeverity'
+      source:
+        type: string
+      userId:
+        type: string
+    type: object
+  ops-server_internal_domain_metrics_models.EventSeverity:
+    enum:
+    - info
+    - warning
+    - critical
+    type: string
+    x-enum-varnames:
+    - EventSeverityInfo
+    - EventSeverityWarning
+    - EventSeverityCritical
+  ops-server_internal_domain_metrics_models.MetricPeriod:
+    enum:
+    - realtime
+    - hourly
+    - daily
+    - weekly
+    - monthly
+    type: string
+    x-enum-varnames:
+    - MetricPeriodRealtime
+    - MetricPeriodHourly
+    - MetricPeriodDaily
+    - MetricPeriodWeekly
+    - MetricPeriodMonthly
+  ops-server_internal_domain_metrics_models.MetricResponse:
+    description: Représentation publique d'une métrique
+    properties:
+      createdAt:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      metricId:
+        type: string
+      name:
+        type: string
+      period:
+        $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricPeriod'
+      recordedAt:
+        type: string
+      source:
+        type: string
+      type:
+        $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricType'
+      value:
+        type: number
+    type: object
+  ops-server_internal_domain_metrics_models.MetricType:
+    enum:
+    - counter
+    - gauge
+    - histogram
+    type: string
+    x-enum-comments:
+      MetricTypeCounter: valeur toujours croissante
+      MetricTypeGauge: valeur instantanée (peut baisser)
+      MetricTypeHistogram: distribution de valeurs
+    x-enum-descriptions:
+    - valeur toujours croissante
+    - valeur instantanée (peut baisser)
+    - distribution de valeurs
+    x-enum-varnames:
+    - MetricTypeCounter
+    - MetricTypeGauge
+    - MetricTypeHistogram
+  ops-server_internal_domain_notification_models.NotificationResponse:
+    description: Représentation publique d'une notification
+    properties:
+      body:
+        type: string
+      createdAt:
+        type: string
+      notificationId:
+        type: string
+      readAt:
+        type: string
+      retryCount:
+        type: integer
+      sentAt:
+        type: string
+      status:
+        $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationStatus'
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationType'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  ops-server_internal_domain_notification_models.NotificationStatus:
+    enum:
+    - pending
+    - sent
+    - failed
+    - read
+    type: string
+    x-enum-varnames:
+    - NotificationStatusPending
+    - NotificationStatusSent
+    - NotificationStatusFailed
+    - NotificationStatusRead
+  ops-server_internal_domain_notification_models.NotificationType:
+    enum:
+    - email
+    - push
+    - in_app
+    - sms
+    type: string
+    x-enum-varnames:
+    - NotificationTypeEmail
+    - NotificationTypePush
+    - NotificationTypeInApp
+    - NotificationTypeSMS
+  ops-server_internal_domain_user_models.AssignRoleInput:
+    properties:
+      roleId:
+        type: string
+    required:
+    - roleId
+    type: object
+  ops-server_internal_domain_user_models.AuthResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      user:
+        $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+    type: object
+  ops-server_internal_domain_user_models.CreateUserInput:
+    description: Données pour créer un nouvel utilisateur
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      identifier:
+        type: string
+      lastName:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - firstName
+    - identifier
+    - lastName
+    - password
+    type: object
+  ops-server_internal_domain_user_models.PermissionAction:
+    enum:
+    - read
+    - write
+    - delete
+    - '*'
+    type: string
+    x-enum-varnames:
+    - ActionRead
+    - ActionWrite
+    - ActionDelete
+    - ActionAll
+  ops-server_internal_domain_user_models.PermissionResponse:
+    properties:
+      action:
+        $ref: '#/definitions/ops-server_internal_domain_user_models.PermissionAction'
+      permissionId:
+        type: string
+      resource:
+        type: string
+      slug:
+        type: string
+    type: object
+  ops-server_internal_domain_user_models.RefreshTokenInput:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  ops-server_internal_domain_user_models.RoleName:
+    enum:
+    - admin
+    - ops
+    - viewer
+    type: string
+    x-enum-varnames:
+    - RoleNameAdmin
+    - RoleNameOps
+    - RoleNameViewer
+  ops-server_internal_domain_user_models.RoleResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      displayName:
+        type: string
+      isSystem:
+        type: boolean
+      name:
+        $ref: '#/definitions/ops-server_internal_domain_user_models.RoleName'
+      permissions:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.PermissionResponse'
+        type: array
+      roleId:
+        type: string
+    type: object
+  ops-server_internal_domain_user_models.SignInInput:
+    properties:
+      identifier:
+        type: string
+      password:
+        type: string
+    required:
+    - identifier
+    - password
+    type: object
+  ops-server_internal_domain_user_models.UpdateUserInput:
+    properties:
+      firstName:
+        type: string
+      isActive:
+        type: boolean
+      lastName:
+        type: string
+    type: object
+  ops-server_internal_domain_user_models.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      identifier:
+        type: string
+      isActive:
+        type: boolean
+      lastName:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.UserRoleResponse'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  ops-server_internal_domain_user_models.UserRoleResponse:
+    properties:
+      assignedAt:
+        type: string
+      assignedBy:
+        type: string
+      role:
+        $ref: '#/definitions/ops-server_internal_domain_user_models.RoleResponse'
+      userId:
+        type: string
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_audit_models.LogResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  response.APIResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  response.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /audit/logs:
+    get:
+      parameters:
+      - description: Niveau (debug|info|warning|error|fatal)
+        enum:
+        - debug
+        - info
+        - warning
+        - error
+        - fatal
+        in: query
+        name: level
+        type: string
+      - description: Service source
+        in: query
+        name: service
+        type: string
+      - description: Trace ID
+        in: query
+        name: traceId
+        type: string
+      - description: Request ID
+        in: query
+        name: requestId
+        type: string
+      - description: Date début (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date fin (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les logs applicatifs (admin)
+      tags:
+      - audit
+  /audit/trails:
+    get:
+      parameters:
+      - description: 'Ressource (ex: user)'
+        in: query
+        name: resource
+        type: string
+      - description: Action
+        enum:
+        - CREATE
+        - UPDATE
+        - DELETE
+        - READ
+        - LOGIN
+        - LOGOUT
+        - EXPORT
+        in: query
+        name: action
+        type: string
+      - description: Résultat
+        enum:
+        - success
+        - failure
+        - denied
+        in: query
+        name: outcome
+        type: string
+      - description: UUID utilisateur
+        in: query
+        name: userId
+        type: string
+      - description: Date début (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date fin (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lister les audit trails (admin)
+      tags:
+      - audit
+  /audit/trails/{id}:
+    get:
+      parameters:
+      - description: UUID audit trail
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détail d'un audit trail
+      tags:
+      - audit
+  /auth/logout:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Déconnexion
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.RefreshTokenInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.AuthResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Renouveler le token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Inscription d'un nouvel utilisateur
+      parameters:
+      - description: Données d'inscription
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Créer un compte
+      tags:
+      - auth
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Identifiants
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.AuthResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Authentification
+      tags:
+      - auth
+  /metrics:
+    get:
+      parameters:
+      - description: Filtre nom
+        in: query
+        name: name
+        type: string
+      - description: Filtre type
+        enum:
+        - counter
+        - gauge
+        - histogram
+        in: query
+        name: type
+        type: string
+      - description: Période
+        enum:
+        - realtime
+        - hourly
+        - daily
+        - weekly
+        - monthly
+        in: query
+        name: period
+        type: string
+      - description: Date début (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date fin (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les métriques
+      tags:
+      - metrics
+  /metrics/events:
+    get:
+      parameters:
+      - description: Sévérité
+        enum:
+        - info
+        - warning
+        - critical
+        in: query
+        name: severity
+        type: string
+      - description: Catégorie
+        enum:
+        - auth
+        - user
+        - system
+        - ingestion
+        - api
+        in: query
+        name: category
+        type: string
+      - description: Date début (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: Date fin (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les événements
+      tags:
+      - metrics
+  /metrics/events/{id}:
+    get:
+      parameters:
+      - description: UUID événement
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détail d'un événement
+      tags:
+      - metrics
+  /notifications:
+    get:
+      parameters:
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite (max 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Filtre statut
+        enum:
+        - pending
+        - sent
+        - failed
+        - read
+        in: query
+        name: status
+        type: string
+      - description: Filtre type
+        enum:
+        - email
+        - push
+        - in_app
+        - sms
+        in: query
+        name: type
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mes notifications
+      tags:
+      - notifications
+  /notifications/{id}:
+    delete:
+      parameters:
+      - description: UUID notification
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer une notification
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    patch:
+      parameters:
+      - description: UUID notification
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Marquer comme lue
+      tags:
+      - notifications
+  /notifications/unread-count:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  additionalProperties:
+                    format: int64
+                    type: integer
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Nombre de non-lues
+      tags:
+      - notifications
+  /users:
+    get:
+      parameters:
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Limite (max 100)
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les utilisateurs (admin)
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      parameters:
+      - description: UUID utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer un utilisateur (soft-delete)
+      tags:
+      - users
+    get:
+      parameters:
+      - description: UUID utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtenir un utilisateur (admin)
+      tags:
+      - users
+    patch:
+      parameters:
+      - description: UUID utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Champs à modifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.UpdateUserInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour un utilisateur
+      tags:
+      - users
+  /users/{id}/roles:
+    post:
+      parameters:
+      - description: UUID utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Rôle à assigner
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ops-server_internal_domain_user_models.AssignRoleInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assigner un rôle (admin)
+      tags:
+      - users
+  /users/me:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mon profil
+      tags:
+      - users
 swagger: "2.0"

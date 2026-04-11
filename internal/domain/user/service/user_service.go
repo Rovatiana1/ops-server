@@ -52,12 +52,12 @@ func NewUserService(
 func (s *userService) Register(ctx context.Context, input *models.CreateUserInput) (*models.UserResponse, error) {
 	log := logger.FromContext(ctx)
 
-	exists, err := s.repo.ExistsByEmail(ctx, input.Email)
+	exists, err := s.repo.ExistsByIdentifier(ctx, input.Identifier)
 	if err != nil {
-		return nil, appErrors.Wrap(appErrors.ErrCodeDBQuery, "failed to check email", err)
+		return nil, appErrors.Wrap(appErrors.ErrCodeDBQuery, "failed to check identifier", err)
 	}
 	if exists {
-		return nil, appErrors.New(appErrors.ErrCodeEmailTaken, "email already in use")
+		return nil, appErrors.New(appErrors.ErrCodeIdentifierTaken, "identifier already in use")
 	}
 
 	hash, err := utils.HashPassword(input.Password)
@@ -66,11 +66,12 @@ func (s *userService) Register(ctx context.Context, input *models.CreateUserInpu
 	}
 
 	user := &models.User{
-		Email:     input.Email,
-		Password:  hash,
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
-		IsActive:  true,
+		Identifier: input.Identifier,
+		Email:      input.Email,
+		Password:   hash,
+		FirstName:  input.FirstName,
+		LastName:   input.LastName,
+		IsActive:   true,
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
@@ -83,10 +84,10 @@ func (s *userService) Register(ctx context.Context, input *models.CreateUserInpu
 
 // SignIn authentifie un utilisateur et retourne des tokens JWT.
 func (s *userService) SignIn(ctx context.Context, input *models.SignInInput) (*models.AuthResponse, error) {
-	user, err := s.repo.FindByEmail(ctx, input.Email)
+	user, err := s.repo.FindByIdentifier(ctx, input.Identifier)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid email or password")
+			return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid identifier or password")
 		}
 		return nil, appErrors.Wrap(appErrors.ErrCodeDBQuery, "failed to find user", err)
 	}
@@ -96,7 +97,7 @@ func (s *userService) SignIn(ctx context.Context, input *models.SignInInput) (*m
 	}
 
 	if !utils.CheckPasswordHash(input.Password, user.Password) {
-		return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid email or password")
+		return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid identifier or password")
 	}
 
 	// Récupérer les rôles pour les inclure dans le token

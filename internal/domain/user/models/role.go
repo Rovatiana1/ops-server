@@ -11,15 +11,14 @@ import (
 type RoleName string
 
 const (
-	RoleNameAdmin   RoleName = "admin"
-	RoleNameManager RoleName = "manager"
-	RoleNameUser    RoleName = "user"
-	RoleNameViewer  RoleName = "viewer"
+	RoleNameAdmin  RoleName = "admin"
+	RoleNameOps    RoleName = "ops"
+	RoleNameViewer RoleName = "viewer"
 )
 
 func (r RoleName) IsValid() bool {
 	switch r {
-	case RoleNameAdmin, RoleNameManager, RoleNameUser, RoleNameViewer:
+	case RoleNameAdmin, RoleNameOps, RoleNameViewer:
 		return true
 	}
 	return false

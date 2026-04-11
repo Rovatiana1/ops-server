@@ -40,7 +40,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 		response.Error(ctx, appErrors.ValidationError(err.Error()))
 		return
 	}
-	logger.FromContext(ctx.Request.Context()).Info("register", zap.String("email", input.Email))
+	logger.FromContext(ctx.Request.Context()).Info("register", zap.String("identifier", input.Identifier))
 
 	user, err := c.svc.Register(ctx.Request.Context(), &input)
 	if err != nil {

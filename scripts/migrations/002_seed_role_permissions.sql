@@ -9,30 +9,22 @@ FROM roles r, permissions p
 WHERE r.name = 'admin'
 ON CONFLICT DO NOTHING;
 
--- Manager → user:read, user:write, notification:read, notification:write, metrics:read
+-- Ops → user:read, user:write, notification:read, notification:write, metrics:read
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 JOIN permissions p ON (p.resource = 'user'         AND p.action IN ('read','write'))
                    OR (p.resource = 'notification'  AND p.action IN ('read','write'))
                    OR (p.resource = 'metrics'       AND p.action  = 'read')
-WHERE r.name = 'manager'
+WHERE r.name = 'ops'
 ON CONFLICT DO NOTHING;
 
--- User → user:read, notification:read
+-- viewer → user:read, notification:read
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
 JOIN permissions p ON (p.resource = 'user'        AND p.action = 'read')
                    OR (p.resource = 'notification' AND p.action = 'read')
-WHERE r.name = 'user'
-ON CONFLICT DO NOTHING;
-
--- Viewer → user:read
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id
-FROM roles r
-JOIN permissions p ON p.resource = 'user' AND p.action = 'read'
 WHERE r.name = 'viewer'
 ON CONFLICT DO NOTHING;
 
@@ -40,7 +32,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO user_roles (user_id, role_id, assigned_by)
 SELECT u.id, r.id, u.id
 FROM users u, roles r
-WHERE u.email = 'admin@ops-server.local'
+WHERE u.identifier = 'admin'
   AND r.name  = 'admin'
 ON CONFLICT DO NOTHING;
 

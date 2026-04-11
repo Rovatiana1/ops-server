@@ -79,7 +79,7 @@ ops-server/
 
 ### User
 - Inscription / Connexion / Refresh / Logout
-- RBAC multi-rôles (admin, manager, user, viewer)
+- RBAC multi-rôles (admin, ops, user, viewer)
 - Permissions granulaires (`resource:action`)
 - Table de jointure `user_roles` many2many
 

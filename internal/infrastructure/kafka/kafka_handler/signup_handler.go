@@ -52,7 +52,7 @@ func (h *SignupHandler) Handle(ctx context.Context, payload []byte) error {
 	log.Info("processing signup event",
 		zap.String("eventId", event.EventID),
 		zap.String("userId", event.UserID),
-		zap.String("email", event.Email),
+		zap.String("identifier", event.Identifier),
 	)
 
 	// Domain processing: e.g. send welcome email, provision resources…
