@@ -9,49 +9,58 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"ops-server/configs"
 
 	// Infrastructure
-	kafkaCore "ops-server/internal/infrastructure/kafka/core"
-	kafkaConsumer "ops-server/internal/infrastructure/kafka/kafka_consumer"
-	kafkaHandler "ops-server/internal/infrastructure/kafka/kafka_handler"
-	kafkaProducer "ops-server/internal/infrastructure/kafka/kafka_producer"
+
+	ldapInfra "ops-server/internal/infrastructure/ldap"
 	postgresInfra "ops-server/internal/infrastructure/postgres"
 	redisInfra "ops-server/internal/infrastructure/redis"
 
-	// Domaines
+	// Domaine user
 	userCtrl "ops-server/internal/domain/user/controller"
 	userRepo "ops-server/internal/domain/user/repository"
 	userSvc "ops-server/internal/domain/user/service"
 
+	// Domaine rbac
+	rbacCtrl "ops-server/internal/domain/rbac/controller"
+	rbacRepo "ops-server/internal/domain/rbac/repository"
+	rbacSvc "ops-server/internal/domain/rbac/service"
+
+	// Domaine notification
 	notifCtrl "ops-server/internal/domain/notification/controller"
 	notifRepo "ops-server/internal/domain/notification/repository"
 	notifSvc "ops-server/internal/domain/notification/service"
 
+	// Domaine metrics
 	metricsCtrl "ops-server/internal/domain/metrics/controller"
 	metricsRepo "ops-server/internal/domain/metrics/repository"
 	metricsSvc "ops-server/internal/domain/metrics/service"
 
+	// Domaine audit
 	auditCtrl "ops-server/internal/domain/audit/controller"
 	auditRepo "ops-server/internal/domain/audit/repository"
 	auditSvc "ops-server/internal/domain/audit/service"
 
+	// Domaine config general
+	configCtrl "ops-server/internal/domain/config_general/controller"
+	configRepo "ops-server/internal/domain/config_general/repository"
+	configSvc "ops-server/internal/domain/config_general/service"
+
 	// Interfaces
 	"ops-server/internal/interfaces/http/routes"
-	"ops-server/internal/interfaces/workers"
 
-	// Pkg
 	"ops-server/pkg/logger"
 )
 
 const configPath = "configs/config.yaml"
 
 func main() {
-	// ── 1. Configuration ─────────────────────────────────────────────────────
+	// ── 1. Configuration ──────────────────────────────────────────────────────
 	cfg, err := configs.Load(configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
@@ -81,32 +90,43 @@ func main() {
 	_ = redisInfra.NewRateLimiter(redisClient)
 
 	// ── 5. Kafka ───────────────────────────────────────────────────────────────
-	fmt.Println("SIGNIN TOPIC =", cfg.Kafka.Topics.Signin)
+	// if err := kafkaCore.DialBroker(cfg.Kafka); err != nil {
+	// 	log.Fatal("kafka failed", zap.Error(err))
+	// }
+	// signupWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.Signup)
+	// signinWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.Signin)
+	// dlqWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.DLQ)
+	// dlqProd := kafkaCore.NewProducer(dlqWriter)
 
-	if err := kafkaCore.DialBroker(cfg.Kafka); err != nil {
-		log.Fatal("kafka failed", zap.Error(err))
-	}
+	// _ = kafkaProducer.NewSignupProducer(kafkaCore.NewProducer(signupWriter))
+	// _ = kafkaProducer.NewSigninProducer(kafkaCore.NewProducer(signinWriter))
+	// _ = kafkaProducer.NewDLQProducer(dlqProd)
 
-	signupWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.Signup)
-	signinWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.Signin)
-	dlqWriter := kafkaCore.NewWriter(cfg.Kafka, cfg.Kafka.Topics.DLQ)
-	dlqProd := kafkaCore.NewProducer(dlqWriter)
+	// signupHdlr := kafkaHandler.NewSignupHandler(cache)
+	// signinHdlr := kafkaHandler.NewSigninHandler(cache)
+	// signupCons := kafkaConsumer.NewSignupConsumer(cfg.Kafka, signupHdlr, dlqProd)
+	// signinCons := kafkaConsumer.NewSigninConsumer(cfg.Kafka, signinHdlr, dlqProd)
+	// retryCons := kafkaConsumer.NewRetryConsumer(cfg.Kafka, signupHdlr, dlqProd)
 
-	_ = kafkaProducer.NewSignupProducer(kafkaCore.NewProducer(signupWriter))
-	_ = kafkaProducer.NewSigninProducer(kafkaCore.NewProducer(signinWriter))
-	_ = kafkaProducer.NewDLQProducer(dlqProd)
+	// ── 6. DI — domaines & LDAP ──────────────────────────────────────────────────────
 
-	signupHdlr := kafkaHandler.NewSignupHandler(cache)
-	signinHdlr := kafkaHandler.NewSigninHandler(cache)
-	signupCons := kafkaConsumer.NewSignupConsumer(cfg.Kafka, signupHdlr, dlqProd)
-	signinCons := kafkaConsumer.NewSigninConsumer(cfg.Kafka, signinHdlr, dlqProd)
-	retryCons := kafkaConsumer.NewRetryConsumer(cfg.Kafka, signupHdlr, dlqProd)
+	// config
+	cRepo := configRepo.NewConfigGeneralRepository(db)
+	cSvc := configSvc.NewConfigGeneralService(cRepo)
+	cCtrl := configCtrl.NewConfigGeneralController(cSvc)
 
-	// ── 6. Domaines (DI) ──────────────────────────────────────────────────────
-	// User
+	// ── LDAP INFRA 🔥 ─────────────────────────────────────────────
+	ldapProvider := ldapInfra.NewConfigProvider(cSvc, cache)
+	ldapService := ldapInfra.NewService(ldapProvider)
+
+	// User (auth uniquement)
 	uRepo := userRepo.NewUserRepository(db)
-	uSvc := userSvc.NewUserService(uRepo, cache, cfg.JWT)
+	uSvc := userSvc.NewUserService(uRepo, cache, cfg.JWT, ldapService)
 	uCtrl := userCtrl.NewUserController(uSvc)
+	// RBAC (roles + permissions + assignations)
+	rRepo := rbacRepo.NewRBACRepository(db)
+	rSvc := rbacSvc.NewRBACService(rRepo)
+	rCtrl := rbacCtrl.NewRBACController(rSvc)
 
 	// Notification
 	nRepo := notifRepo.NewNotificationRepository(db)
@@ -137,7 +157,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	routes.Setup(engine, uCtrl, nCtrl, mCtrl, aCtrl, cfg.JWT)
+	routes.Setup(engine, uCtrl, rCtrl, nCtrl, mCtrl, aCtrl, cCtrl, cfg.JWT, cfg.Proxy)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.App.Port),
@@ -148,12 +168,12 @@ func main() {
 	}
 
 	// ── 8. Workers ─────────────────────────────────────────────────────────────
-	workerPool := workers.NewWorkerPool(signupCons, signinCons, retryCons)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go workerPool.Run(ctx)
+	// workerPool := workers.NewWorkerPool(signupCons, signinCons, retryCons)
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
+	// go workerPool.Run(ctx)
 
-	// ── 9. Démarrage ───────────────────────────────────────────────────────────
+	// ── 9. Start ───────────────────────────────────────────────────────────────
 	go func() {
 		log.Info("http listening",
 			zap.String("addr", srv.Addr),
@@ -170,7 +190,7 @@ func main() {
 	<-quit
 
 	log.Info("shutdown initiated")
-	cancel()
+	// cancel() // besoins avec worker
 
 	shutCtx, shutCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutCancel()
@@ -178,9 +198,8 @@ func main() {
 		log.Error("shutdown error", zap.Error(err))
 	}
 
-	_ = signupWriter.Close()
-	_ = signinWriter.Close()
-	_ = dlqWriter.Close()
-
+	// _ = signupWriter.Close()
+	// _ = signinWriter.Close()
+	// _ = dlqWriter.Close()
 	log.Info("stopped cleanly")
 }

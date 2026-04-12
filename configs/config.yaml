@@ -4,11 +4,22 @@ app:
   port: 8080
   debug: true
 
+# database:
+#   host: "db1.easytech.mg"
+#   port: 5432
+#   user: "user_sampling"
+#   password: "$user_sampling$"
+#   name: "ops-server"
+#   sslmode: "disable"
+#   max_open_conns: 25
+#   max_idle_conns: 10
+#   conn_max_lifetime: 300 # seconds
+
 database:
-  host: "db1.easytech.mg"
+  host: "localhost"
   port: 5432
-  user: "user_sampling"
-  password: "$user_sampling$"
+  user: "postgres"
+  password: "postgres"
   name: "ops-server"
   sslmode: "disable"
   max_open_conns: 25
@@ -55,3 +66,7 @@ rate_limit:
 observability:
   prometheus_port: 9090
   log_level: "info"
+
+services:
+  sampling: http://localhost:8082/api/v1
+  billing: http://localhost:8083/api/v1

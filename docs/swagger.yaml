@@ -1,38 +1,32 @@
 definitions:
-  ops-server_internal_domain_audit_models.AuditAction:
-    description: Type pour Swagger
-    enum:
-    - CREATE
-    - UPDATE
-    - DELETE
-    - READ
-    - LOGIN
-    - LOGOUT
-    - EXPORT
-    type: string
-    x-enum-varnames:
-    - AuditActionCreate
-    - AuditActionUpdate
-    - AuditActionDelete
-    - AuditActionRead
-    - AuditActionLogin
-    - AuditActionLogout
-    - AuditActionExport
-  ops-server_internal_domain_audit_models.AuditOutcome:
-    enum:
-    - success
-    - failure
-    - denied
-    type: string
-    x-enum-varnames:
-    - AuditOutcomeSuccess
-    - AuditOutcomeFailure
-    - AuditOutcomeDenied
-  ops-server_internal_domain_audit_models.AuditTrailResponse:
+  models.AddPermissionInput:
+    properties:
+      permissionId:
+        type: string
+    required:
+    - permissionId
+    type: object
+  models.AssignPermissionsInput:
+    properties:
+      permissionIds:
+        items:
+          type: string
+        type: array
+    required:
+    - permissionIds
+    type: object
+  models.AssignRoleInput:
+    properties:
+      roleId:
+        type: string
+    required:
+    - roleId
+    type: object
+  models.AuditTrailResponse:
     description: Représentation publique d'un audit trail
     properties:
       action:
-        $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditAction'
+        type: string
       auditId:
         type: string
       createdAt:
@@ -48,7 +42,7 @@ definitions:
         additionalProperties: {}
         type: object
       outcome:
-        $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditOutcome'
+        type: string
       requestId:
         type: string
       resource:
@@ -60,66 +54,107 @@ definitions:
       userId:
         type: string
     type: object
-  ops-server_internal_domain_audit_models.LogLevel:
-    enum:
-    - debug
-    - info
-    - warning
-    - error
-    - fatal
-    type: string
-    x-enum-varnames:
-    - LogLevelDebug
-    - LogLevelInfo
-    - LogLevelWarning
-    - LogLevelError
-    - LogLevelFatal
-  ops-server_internal_domain_audit_models.LogResponse:
-    description: Représentation publique d'un log applicatif persisté
+  models.AuthResponse:
     properties:
-      callerFile:
+      accessToken:
         type: string
-      callerLine:
-        type: integer
+      refreshToken:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserResponse'
+    type: object
+  models.ConfigGeneralResponse:
+    properties:
+      configId:
+        type: string
       createdAt:
         type: string
-      fields:
-        additionalProperties: {}
-        type: object
-      level:
-        $ref: '#/definitions/ops-server_internal_domain_audit_models.LogLevel'
-      logId:
+      data:
+        items:
+          type: integer
+        type: array
+      entity:
         type: string
-      message:
+      isActive:
+        type: boolean
+      key:
         type: string
-      requestId:
+      updatedAt:
         type: string
-      service:
-        type: string
-      traceId:
-        type: string
-      userId:
-        type: string
+      version:
+        type: integer
     type: object
-  ops-server_internal_domain_metrics_models.EventCategory:
-    enum:
-    - auth
-    - user
-    - system
-    - ingestion
-    - api
-    type: string
-    x-enum-varnames:
-    - EventCategoryAuth
-    - EventCategoryUser
-    - EventCategorySystem
-    - EventCategoryIngestion
-    - EventCategoryAPI
-  ops-server_internal_domain_metrics_models.EventResponse:
+  models.CreateConfigGeneralInput:
+    properties:
+      data:
+        description: JSON libre
+        items:
+          type: integer
+        type: array
+      entity:
+        type: string
+      key:
+        type: string
+    required:
+    - data
+    - entity
+    - key
+    type: object
+  models.CreatePermissionInput:
+    properties:
+      action:
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      resource:
+        maxLength: 100
+        type: string
+    required:
+    - action
+    - resource
+    type: object
+  models.CreateRoleInput:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      displayName:
+        maxLength: 100
+        type: string
+      isSystem:
+        type: boolean
+      name:
+        maxLength: 50
+        type: string
+    required:
+    - displayName
+    - name
+    type: object
+  models.CreateUserInput:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      identifier:
+        type: string
+      lastName:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - firstName
+    - identifier
+    - lastName
+    - password
+    type: object
+  models.EventResponse:
     description: Représentation publique d'un événement observable
     properties:
       category:
-        $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventCategory'
+        type: string
       createdAt:
         type: string
       description:
@@ -136,37 +171,40 @@ definitions:
       requestId:
         type: string
       severity:
-        $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventSeverity'
+        type: string
       source:
         type: string
       userId:
         type: string
     type: object
-  ops-server_internal_domain_metrics_models.EventSeverity:
-    enum:
-    - info
-    - warning
-    - critical
-    type: string
-    x-enum-varnames:
-    - EventSeverityInfo
-    - EventSeverityWarning
-    - EventSeverityCritical
-  ops-server_internal_domain_metrics_models.MetricPeriod:
-    enum:
-    - realtime
-    - hourly
-    - daily
-    - weekly
-    - monthly
-    type: string
-    x-enum-varnames:
-    - MetricPeriodRealtime
-    - MetricPeriodHourly
-    - MetricPeriodDaily
-    - MetricPeriodWeekly
-    - MetricPeriodMonthly
-  ops-server_internal_domain_metrics_models.MetricResponse:
+  models.LogResponse:
+    description: Représentation publique d'un log applicatif persisté
+    properties:
+      callerFile:
+        type: string
+      callerLine:
+        type: integer
+      createdAt:
+        type: string
+      fields:
+        additionalProperties: {}
+        type: object
+      level:
+        type: string
+      logId:
+        type: string
+      message:
+        type: string
+      requestId:
+        type: string
+      service:
+        type: string
+      traceId:
+        type: string
+      userId:
+        type: string
+    type: object
+  models.MetricResponse:
     description: Représentation publique d'une métrique
     properties:
       createdAt:
@@ -180,35 +218,17 @@ definitions:
       name:
         type: string
       period:
-        $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricPeriod'
+        type: string
       recordedAt:
         type: string
       source:
         type: string
       type:
-        $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricType'
+        type: string
       value:
         type: number
     type: object
-  ops-server_internal_domain_metrics_models.MetricType:
-    enum:
-    - counter
-    - gauge
-    - histogram
-    type: string
-    x-enum-comments:
-      MetricTypeCounter: valeur toujours croissante
-      MetricTypeGauge: valeur instantanée (peut baisser)
-      MetricTypeHistogram: distribution de valeurs
-    x-enum-descriptions:
-    - valeur toujours croissante
-    - valeur instantanée (peut baisser)
-    - distribution de valeurs
-    x-enum-varnames:
-    - MetricTypeCounter
-    - MetricTypeGauge
-    - MetricTypeHistogram
-  ops-server_internal_domain_notification_models.NotificationResponse:
+  models.NotificationResponse:
     description: Représentation publique d'une notification
     properties:
       body:
@@ -224,118 +244,41 @@ definitions:
       sentAt:
         type: string
       status:
-        $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationStatus'
+        type: string
       title:
         type: string
       type:
-        $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationType'
+        type: string
       updatedAt:
         type: string
       userId:
         type: string
     type: object
-  ops-server_internal_domain_notification_models.NotificationStatus:
-    enum:
-    - pending
-    - sent
-    - failed
-    - read
-    type: string
-    x-enum-varnames:
-    - NotificationStatusPending
-    - NotificationStatusSent
-    - NotificationStatusFailed
-    - NotificationStatusRead
-  ops-server_internal_domain_notification_models.NotificationType:
-    enum:
-    - email
-    - push
-    - in_app
-    - sms
-    type: string
-    x-enum-varnames:
-    - NotificationTypeEmail
-    - NotificationTypePush
-    - NotificationTypeInApp
-    - NotificationTypeSMS
-  ops-server_internal_domain_user_models.AssignRoleInput:
-    properties:
-      roleId:
-        type: string
-    required:
-    - roleId
-    type: object
-  ops-server_internal_domain_user_models.AuthResponse:
-    properties:
-      accessToken:
-        type: string
-      refreshToken:
-        type: string
-      user:
-        $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
-    type: object
-  ops-server_internal_domain_user_models.CreateUserInput:
-    description: Données pour créer un nouvel utilisateur
-    properties:
-      email:
-        type: string
-      firstName:
-        type: string
-      identifier:
-        type: string
-      lastName:
-        type: string
-      password:
-        minLength: 8
-        type: string
-    required:
-    - email
-    - firstName
-    - identifier
-    - lastName
-    - password
-    type: object
-  ops-server_internal_domain_user_models.PermissionAction:
-    enum:
-    - read
-    - write
-    - delete
-    - '*'
-    type: string
-    x-enum-varnames:
-    - ActionRead
-    - ActionWrite
-    - ActionDelete
-    - ActionAll
-  ops-server_internal_domain_user_models.PermissionResponse:
+  models.PermissionResponse:
     properties:
       action:
-        $ref: '#/definitions/ops-server_internal_domain_user_models.PermissionAction'
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
       permissionId:
         type: string
       resource:
         type: string
       slug:
         type: string
+      updatedAt:
+        type: string
     type: object
-  ops-server_internal_domain_user_models.RefreshTokenInput:
+  models.RefreshTokenInput:
     properties:
       refreshToken:
         type: string
     required:
     - refreshToken
     type: object
-  ops-server_internal_domain_user_models.RoleName:
-    enum:
-    - admin
-    - ops
-    - viewer
-    type: string
-    x-enum-varnames:
-    - RoleNameAdmin
-    - RoleNameOps
-    - RoleNameViewer
-  ops-server_internal_domain_user_models.RoleResponse:
+  models.RoleResponse:
     properties:
       createdAt:
         type: string
@@ -346,15 +289,34 @@ definitions:
       isSystem:
         type: boolean
       name:
-        $ref: '#/definitions/ops-server_internal_domain_user_models.RoleName'
+        type: string
       permissions:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.PermissionResponse'
+          $ref: '#/definitions/models.PermissionResponse'
+        type: array
+      roleId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.RoleSummaryResponse:
+    properties:
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      isSystem:
+        type: boolean
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/models.PermissionResponse'
         type: array
       roleId:
         type: string
     type: object
-  ops-server_internal_domain_user_models.SignInInput:
+  models.SignInInput:
     properties:
       identifier:
         type: string
@@ -364,7 +326,30 @@ definitions:
     - identifier
     - password
     type: object
-  ops-server_internal_domain_user_models.UpdateUserInput:
+  models.UpdateConfigGeneralInput:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      isActive:
+        type: boolean
+    type: object
+  models.UpdatePermissionInput:
+    properties:
+      description:
+        type: string
+    type: object
+  models.UpdateRoleInput:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      displayName:
+        maxLength: 100
+        type: string
+    type: object
+  models.UpdateUserInput:
     properties:
       firstName:
         type: string
@@ -373,7 +358,7 @@ definitions:
       lastName:
         type: string
     type: object
-  ops-server_internal_domain_user_models.UserResponse:
+  models.UserResponse:
     properties:
       createdAt:
         type: string
@@ -389,29 +374,37 @@ definitions:
         type: string
       roles:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.UserRoleResponse'
+          $ref: '#/definitions/models.UserRoleResponse'
         type: array
       updatedAt:
         type: string
       userId:
         type: string
     type: object
-  ops-server_internal_domain_user_models.UserRoleResponse:
+  models.UserRoleResponse:
     properties:
       assignedAt:
         type: string
       assignedBy:
         type: string
       role:
-        $ref: '#/definitions/ops-server_internal_domain_user_models.RoleResponse'
+        $ref: '#/definitions/models.RoleSummaryResponse'
       userId:
         type: string
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse:
+  ops-server_internal_interfaces_http_response.APIResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-models_AuditTrailResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse'
+          $ref: '#/definitions/models.AuditTrailResponse'
         type: array
       limit:
         type: integer
@@ -422,11 +415,11 @@ definitions:
       totalPages:
         type: integer
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse:
+  ops-server_internal_interfaces_http_response.PaginatedData-models_ConfigGeneralResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_audit_models.LogResponse'
+          $ref: '#/definitions/models.ConfigGeneralResponse'
         type: array
       limit:
         type: integer
@@ -437,11 +430,11 @@ definitions:
       totalPages:
         type: integer
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse:
+  ops-server_internal_interfaces_http_response.PaginatedData-models_EventResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventResponse'
+          $ref: '#/definitions/models.EventResponse'
         type: array
       limit:
         type: integer
@@ -452,11 +445,11 @@ definitions:
       totalPages:
         type: integer
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse:
+  ops-server_internal_interfaces_http_response.PaginatedData-models_LogResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_metrics_models.MetricResponse'
+          $ref: '#/definitions/models.LogResponse'
         type: array
       limit:
         type: integer
@@ -467,11 +460,11 @@ definitions:
       totalPages:
         type: integer
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse:
+  ops-server_internal_interfaces_http_response.PaginatedData-models_MetricResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_notification_models.NotificationResponse'
+          $ref: '#/definitions/models.MetricResponse'
         type: array
       limit:
         type: integer
@@ -482,11 +475,56 @@ definitions:
       totalPages:
         type: integer
     type: object
-  ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse:
+  ops-server_internal_interfaces_http_response.PaginatedData-models_NotificationResponse:
     properties:
       items:
         items:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+          $ref: '#/definitions/models.NotificationResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-models_PermissionResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.PermissionResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-models_RoleSummaryResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.RoleSummaryResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ops-server_internal_interfaces_http_response.PaginatedData-models_UserResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.UserResponse'
         type: array
       limit:
         type: integer
@@ -521,16 +559,6 @@ paths:
   /audit/logs:
     get:
       parameters:
-      - description: Niveau (debug|info|warning|error|fatal)
-        enum:
-        - debug
-        - info
-        - warning
-        - error
-        - fatal
-        in: query
-        name: level
-        type: string
       - description: Service source
         in: query
         name: service
@@ -567,7 +595,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_LogResponse'
               type: object
       security:
       - BearerAuth: []
@@ -580,26 +608,6 @@ paths:
       - description: 'Ressource (ex: user)'
         in: query
         name: resource
-        type: string
-      - description: Action
-        enum:
-        - CREATE
-        - UPDATE
-        - DELETE
-        - READ
-        - LOGIN
-        - LOGOUT
-        - EXPORT
-        in: query
-        name: action
-        type: string
-      - description: Résultat
-        enum:
-        - success
-        - failure
-        - denied
-        in: query
-        name: outcome
         type: string
       - description: UUID utilisateur
         in: query
@@ -629,7 +637,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_AuditTrailResponse'
               type: object
         "401":
           description: Unauthorized
@@ -660,7 +668,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse'
+                  $ref: '#/definitions/models.AuditTrailResponse'
               type: object
         "404":
           description: Not Found
@@ -678,10 +686,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.APIResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Déconnexion
@@ -697,7 +701,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.RefreshTokenInput'
+          $ref: '#/definitions/models.RefreshTokenInput'
       produces:
       - application/json
       responses:
@@ -708,7 +712,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.AuthResponse'
+                  $ref: '#/definitions/models.AuthResponse'
               type: object
         "401":
           description: Unauthorized
@@ -721,14 +725,13 @@ paths:
     post:
       consumes:
       - application/json
-      description: Inscription d'un nouvel utilisateur
       parameters:
       - description: Données d'inscription
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.CreateUserInput'
+          $ref: '#/definitions/models.CreateUserInput'
       produces:
       - application/json
       responses:
@@ -739,7 +742,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+                  $ref: '#/definitions/models.UserResponse'
               type: object
         "400":
           description: Bad Request
@@ -762,7 +765,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.SignInInput'
+          $ref: '#/definitions/models.SignInInput'
       produces:
       - application/json
       responses:
@@ -773,7 +776,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.AuthResponse'
+                  $ref: '#/definitions/models.AuthResponse'
               type: object
         "401":
           description: Unauthorized
@@ -782,30 +785,215 @@ paths:
       summary: Authentification
       tags:
       - auth
+  /auth/signin-ldap:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Credentials LDAP
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.AuthResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Authentification LDAP
+      tags:
+      - auth
+  /config-general:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_ConfigGeneralResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les configurations
+      tags:
+      - configs
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ConfigGeneraluration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateConfigGeneralInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConfigGeneralResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer une configuration
+      tags:
+      - configs
+  /config-general/{id}:
+    delete:
+      parameters:
+      - description: ConfigGeneral ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer une configuration
+      tags:
+      - configs
+    get:
+      parameters:
+      - description: ConfigGeneral ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConfigGeneralResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtenir une configuration par ID
+      tags:
+      - configs
+    patch:
+      parameters:
+      - description: ConfigGeneral ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Champs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateConfigGeneralInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConfigGeneralResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour une configuration
+      tags:
+      - configs
+  /config-general/by-key:
+    get:
+      parameters:
+      - description: Entity
+        in: query
+        name: entity
+        required: true
+        type: string
+      - description: Key
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConfigGeneralResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtenir une configuration par entity + key
+      tags:
+      - configs
   /metrics:
     get:
       parameters:
       - description: Filtre nom
         in: query
         name: name
-        type: string
-      - description: Filtre type
-        enum:
-        - counter
-        - gauge
-        - histogram
-        in: query
-        name: type
-        type: string
-      - description: Période
-        enum:
-        - realtime
-        - hourly
-        - daily
-        - weekly
-        - monthly
-        in: query
-        name: period
         type: string
       - description: Date début (RFC3339)
         in: query
@@ -831,7 +1019,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_MetricResponse'
               type: object
       security:
       - BearerAuth: []
@@ -841,24 +1029,6 @@ paths:
   /metrics/events:
     get:
       parameters:
-      - description: Sévérité
-        enum:
-        - info
-        - warning
-        - critical
-        in: query
-        name: severity
-        type: string
-      - description: Catégorie
-        enum:
-        - auth
-        - user
-        - system
-        - ingestion
-        - api
-        in: query
-        name: category
-        type: string
       - description: Date début (RFC3339)
         in: query
         name: from
@@ -883,7 +1053,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_EventResponse'
               type: object
       security:
       - BearerAuth: []
@@ -906,7 +1076,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_metrics_models.EventResponse'
+                  $ref: '#/definitions/models.EventResponse'
               type: object
         "404":
           description: Not Found
@@ -917,6 +1087,33 @@ paths:
       summary: Détail d'un événement
       tags:
       - metrics
+  /metrics/health:
+    get:
+      description: Return parsed Prometheus metrics in human readable form
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Metrics health summary
+      tags:
+      - system
+  /metrics/prometheus:
+    get:
+      description: Expose Prometheus metrics
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: metrics output
+          schema:
+            type: string
+      summary: Prometheus metrics
+      tags:
+      - system
   /notifications:
     get:
       parameters:
@@ -928,24 +1125,6 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Filtre statut
-        enum:
-        - pending
-        - sent
-        - failed
-        - read
-        in: query
-        name: status
-        type: string
-      - description: Filtre type
-        enum:
-        - email
-        - push
-        - in_app
-        - sms
-        in: query
-        name: type
-        type: string
       responses:
         "200":
           description: OK
@@ -954,7 +1133,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_NotificationResponse'
               type: object
         "401":
           description: Unauthorized
@@ -1021,14 +1200,22 @@ paths:
       summary: Nombre de non-lues
       tags:
       - notifications
-  /users:
+  /rbac/permissions:
     get:
       parameters:
-      - description: Offset
+      - description: Filtre ressource
         in: query
-        name: offset
+        name: resource
+        type: string
+      - description: Filtre action
+        in: query
+        name: action
+        type: string
+      - description: Page
+        in: query
+        name: page
         type: integer
-      - description: Limite (max 100)
+      - description: Limite
         in: query
         name: limit
         type: integer
@@ -1040,7 +1227,483 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse'
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_PermissionResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les permissions
+      tags:
+      - rbac
+    post:
+      consumes:
+      - application/json
+      description: Crée une permission granulaire resource:action
+      parameters:
+      - description: Données de la permission
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePermissionInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PermissionResponse'
+              type: object
+        "409":
+          description: Déjà existante
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer une permission
+      tags:
+      - rbac
+  /rbac/permissions/{id}:
+    delete:
+      parameters:
+      - description: UUID de la permission
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer une permission
+      tags:
+      - rbac
+    get:
+      parameters:
+      - description: UUID de la permission
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PermissionResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détail d'une permission
+      tags:
+      - rbac
+    patch:
+      description: Seul le champ description est modifiable (resource:action est immuable)
+      parameters:
+      - description: UUID de la permission
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Description
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePermissionInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PermissionResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour une permission
+      tags:
+      - rbac
+  /rbac/roles:
+    get:
+      description: Retourne la liste paginée des rôles
+      parameters:
+      - description: Filtre par nom
+        in: query
+        name: name
+        type: string
+      - description: Filtre rôles système
+        in: query
+        name: isSystem
+        type: boolean
+      - description: 'Page (défaut: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Limite (défaut: 20)'
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_RoleSummaryResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les rôles
+      tags:
+      - rbac
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau rôle applicatif (admin uniquement)
+      parameters:
+      - description: Données du rôle
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateRoleInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RoleResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer un rôle
+      tags:
+      - rbac
+  /rbac/roles/{id}:
+    delete:
+      description: Soft-delete d'un rôle (impossible sur les rôles système)
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Rôle système non supprimable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer un rôle
+      tags:
+      - rbac
+    get:
+      description: Retourne un rôle avec ses permissions
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RoleResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détail d'un rôle
+      tags:
+      - rbac
+    patch:
+      description: Met à jour displayName et/ou description d'un rôle
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Champs à modifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateRoleInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RoleResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour un rôle
+      tags:
+      - rbac
+  /rbac/roles/{id}/permissions:
+    get:
+      description: Retourne la liste des permissions associées à un rôle
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.PermissionResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Permissions d'un rôle
+      tags:
+      - rbac
+    post:
+      description: Ajoute une permission individuelle à un rôle sans toucher aux autres
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Permission à ajouter
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddPermissionInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RoleResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Ajouter une permission à un rôle
+      tags:
+      - rbac
+    put:
+      description: Remplace atomiquement l'ensemble des permissions d'un rôle
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Liste des permission IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignPermissionsInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RoleResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Remplacer toutes les permissions d'un rôle
+      tags:
+      - rbac
+  /rbac/roles/{id}/permissions/{permId}:
+    delete:
+      parameters:
+      - description: UUID du rôle
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UUID de la permission
+        in: path
+        name: permId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Retirer une permission d'un rôle
+      tags:
+      - rbac
+  /rbac/users/{userId}/roles:
+    get:
+      description: Liste les rôles assignés à un utilisateur spécifique
+      parameters:
+      - description: UUID de l'utilisateur
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.UserRoleResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Rôles d'un utilisateur
+      tags:
+      - rbac
+    post:
+      parameters:
+      - description: UUID de l'utilisateur
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Rôle à assigner
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignRoleInput'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Rôle non trouvé
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assigner un rôle à un utilisateur
+      tags:
+      - rbac
+  /rbac/users/{userId}/roles/{roleId}:
+    delete:
+      parameters:
+      - description: UUID de l'utilisateur
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: UUID du rôle
+        in: path
+        name: roleId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Retirer un rôle d'un utilisateur
+      tags:
+      - rbac
+  /users:
+    get:
+      parameters:
+      - description: 'Page (défaut: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Limite (défaut: 20, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_UserResponse'
               type: object
       security:
       - BearerAuth: []
@@ -1084,7 +1747,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+                  $ref: '#/definitions/models.UserResponse'
               type: object
         "404":
           description: Not Found
@@ -1107,7 +1770,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.UpdateUserInput'
+          $ref: '#/definitions/models.UpdateUserInput'
       responses:
         "200":
           description: OK
@@ -1116,7 +1779,7 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+                  $ref: '#/definitions/models.UserResponse'
               type: object
         "404":
           description: Not Found
@@ -1125,34 +1788,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Mettre à jour un utilisateur
-      tags:
-      - users
-  /users/{id}/roles:
-    post:
-      parameters:
-      - description: UUID utilisateur
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Rôle à assigner
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/ops-server_internal_domain_user_models.AssignRoleInput'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.APIResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Assigner un rôle (admin)
       tags:
       - users
   /users/me:
@@ -1165,12 +1800,8 @@ paths:
             - $ref: '#/definitions/response.APIResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/ops-server_internal_domain_user_models.UserResponse'
+                  $ref: '#/definitions/models.UserResponse'
               type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Mon profil

@@ -17,19 +17,6 @@
                 "summary": "Lister les logs applicatifs (admin)",
                 "parameters": [
                     {
-                        "enum": [
-                            "debug",
-                            "info",
-                            "warning",
-                            "error",
-                            "fatal"
-                        ],
-                        "type": "string",
-                        "description": "Niveau (debug|info|warning|error|fatal)",
-                        "name": "level",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "Service source",
                         "name": "service",
@@ -84,7 +71,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_LogResponse"
                                         }
                                     }
                                 }
@@ -110,32 +97,6 @@
                         "type": "string",
                         "description": "Ressource (ex: user)",
                         "name": "resource",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "CREATE",
-                            "UPDATE",
-                            "DELETE",
-                            "READ",
-                            "LOGIN",
-                            "LOGOUT",
-                            "EXPORT"
-                        ],
-                        "type": "string",
-                        "description": "Action",
-                        "name": "action",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "success",
-                            "failure",
-                            "denied"
-                        ],
-                        "type": "string",
-                        "description": "Résultat",
-                        "name": "outcome",
                         "in": "query"
                     },
                     {
@@ -181,7 +142,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_AuditTrailResponse"
                                         }
                                     }
                                 }
@@ -235,7 +196,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse"
+                                            "$ref": "#/definitions/models.AuditTrailResponse"
                                         }
                                     }
                                 }
@@ -268,12 +229,6 @@
                         "schema": {
                             "$ref": "#/definitions/response.APIResponse"
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
                     }
                 }
             }
@@ -297,7 +252,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ops-server_internal_domain_user_models.RefreshTokenInput"
+                            "$ref": "#/definitions/models.RefreshTokenInput"
                         }
                     }
                 ],
@@ -313,7 +268,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.AuthResponse"
+                                            "$ref": "#/definitions/models.AuthResponse"
                                         }
                                     }
                                 }
@@ -331,7 +286,6 @@
         },
         "/auth/register": {
             "post": {
-                "description": "Inscription d'un nouvel utilisateur",
                 "consumes": [
                     "application/json"
                 ],
@@ -349,7 +303,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ops-server_internal_domain_user_models.CreateUserInput"
+                            "$ref": "#/definitions/models.CreateUserInput"
                         }
                     }
                 ],
@@ -365,7 +319,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                                            "$ref": "#/definitions/models.UserResponse"
                                         }
                                     }
                                 }
@@ -406,7 +360,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ops-server_internal_domain_user_models.SignInInput"
+                            "$ref": "#/definitions/models.SignInInput"
                         }
                     }
                 ],
@@ -422,7 +376,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.AuthResponse"
+                                            "$ref": "#/definitions/models.AuthResponse"
                                         }
                                     }
                                 }
@@ -431,6 +385,356 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signin-ldap": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authentification LDAP",
+                "parameters": [
+                    {
+                        "description": "Credentials LDAP",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SignInInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.AuthResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/config-general": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Lister les configurations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_ConfigGeneralResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Créer une configuration",
+                "parameters": [
+                    {
+                        "description": "ConfigGeneraluration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateConfigGeneralInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ConfigGeneralResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/config-general/by-key": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Obtenir une configuration par entity + key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity",
+                        "name": "entity",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Key",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ConfigGeneralResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/config-general/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Obtenir une configuration par ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ConfigGeneral ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ConfigGeneralResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Supprimer une configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ConfigGeneral ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "configs"
+                ],
+                "summary": "Mettre à jour une configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ConfigGeneral ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Champs",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateConfigGeneralInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ConfigGeneralResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -457,30 +761,6 @@
                         "in": "query"
                     },
                     {
-                        "enum": [
-                            "counter",
-                            "gauge",
-                            "histogram"
-                        ],
-                        "type": "string",
-                        "description": "Filtre type",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "realtime",
-                            "hourly",
-                            "daily",
-                            "weekly",
-                            "monthly"
-                        ],
-                        "type": "string",
-                        "description": "Période",
-                        "name": "period",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "Date début (RFC3339)",
                         "name": "from",
@@ -517,7 +797,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_MetricResponse"
                                         }
                                     }
                                 }
@@ -540,30 +820,6 @@
                 "summary": "Lister les événements",
                 "parameters": [
                     {
-                        "enum": [
-                            "info",
-                            "warning",
-                            "critical"
-                        ],
-                        "type": "string",
-                        "description": "Sévérité",
-                        "name": "severity",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "auth",
-                            "user",
-                            "system",
-                            "ingestion",
-                            "api"
-                        ],
-                        "type": "string",
-                        "description": "Catégorie",
-                        "name": "category",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "Date début (RFC3339)",
                         "name": "from",
@@ -600,7 +856,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_EventResponse"
                                         }
                                     }
                                 }
@@ -642,7 +898,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_metrics_models.EventResponse"
+                                            "$ref": "#/definitions/models.EventResponse"
                                         }
                                     }
                                 }
@@ -653,6 +909,47 @@
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics/health": {
+            "get": {
+                "description": "Return parsed Prometheus metrics in human readable form",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Metrics health summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics/prometheus": {
+            "get": {
+                "description": "Expose Prometheus metrics",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Prometheus metrics",
+                "responses": {
+                    "200": {
+                        "description": "metrics output",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -681,30 +978,6 @@
                         "description": "Limite (max 50)",
                         "name": "limit",
                         "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "pending",
-                            "sent",
-                            "failed",
-                            "read"
-                        ],
-                        "type": "string",
-                        "description": "Filtre statut",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "email",
-                            "push",
-                            "in_app",
-                            "sms"
-                        ],
-                        "type": "string",
-                        "description": "Filtre type",
-                        "name": "type",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -719,7 +992,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_NotificationResponse"
                                         }
                                     }
                                 }
@@ -832,7 +1105,7 @@
                 }
             }
         },
-        "/users": {
+        "/rbac/permissions": {
             "get": {
                 "security": [
                     {
@@ -840,19 +1113,31 @@
                     }
                 ],
                 "tags": [
-                    "users"
+                    "rbac"
                 ],
-                "summary": "Lister les utilisateurs (admin)",
+                "summary": "Lister les permissions",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
+                        "type": "string",
+                        "description": "Filtre ressource",
+                        "name": "resource",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtre action",
+                        "name": "action",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Limite (max 100)",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limite",
                         "name": "limit",
                         "in": "query"
                     }
@@ -869,7 +1154,817 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse"
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_PermissionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crée une permission granulaire resource:action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Créer une permission",
+                "parameters": [
+                    {
+                        "description": "Données de la permission",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePermissionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.PermissionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "409": {
+                        "description": "Déjà existante",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/permissions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Détail d'une permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de la permission",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.PermissionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Supprimer une permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de la permission",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Seul le champ description est modifiable (resource:action est immuable)",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Mettre à jour une permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de la permission",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Description",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePermissionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.PermissionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retourne la liste paginée des rôles",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Lister les rôles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filtre par nom",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filtre rôles système",
+                        "name": "isSystem",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page (défaut: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limite (défaut: 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_RoleSummaryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crée un nouveau rôle applicatif (admin uniquement)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Créer un rôle",
+                "parameters": [
+                    {
+                        "description": "Données du rôle",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRoleInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.RoleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/roles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retourne un rôle avec ses permissions",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Détail d'un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.RoleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft-delete d'un rôle (impossible sur les rôles système)",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Supprimer un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Rôle système non supprimable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Met à jour displayName et/ou description d'un rôle",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Mettre à jour un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Champs à modifier",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateRoleInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.RoleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/roles/{id}/permissions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retourne la liste des permissions associées à un rôle",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Permissions d'un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.PermissionResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remplace atomiquement l'ensemble des permissions d'un rôle",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Remplacer toutes les permissions d'un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Liste des permission IDs",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AssignPermissionsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.RoleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Ajoute une permission individuelle à un rôle sans toucher aux autres",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Ajouter une permission à un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Permission à ajouter",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddPermissionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.RoleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/roles/{id}/permissions/{permId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Retirer une permission d'un rôle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UUID de la permission",
+                        "name": "permId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/users/{userId}/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Liste les rôles assignés à un utilisateur spécifique",
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Rôles d'un utilisateur",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de l'utilisateur",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.UserRoleResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Assigner un rôle à un utilisateur",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de l'utilisateur",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rôle à assigner",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AssignRoleInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Rôle non trouvé",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/users/{userId}/roles/{roleId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Retirer un rôle d'un utilisateur",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID de l'utilisateur",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UUID du rôle",
+                        "name": "roleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Lister les utilisateurs (admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page (défaut: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limite (défaut: 20, max: 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ops-server_internal_interfaces_http_response.PaginatedData-models_UserResponse"
                                         }
                                     }
                                 }
@@ -902,17 +1997,11 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                                            "$ref": "#/definitions/models.UserResponse"
                                         }
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -950,7 +2039,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                                            "$ref": "#/definitions/models.UserResponse"
                                         }
                                     }
                                 }
@@ -1023,7 +2112,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ops-server_internal_domain_user_models.UpdateUserInput"
+                            "$ref": "#/definitions/models.UpdateUserInput"
                         }
                     }
                 ],
@@ -1039,7 +2128,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                                            "$ref": "#/definitions/models.UserResponse"
                                         }
                                     }
                                 }
@@ -1054,95 +2143,51 @@
                     }
                 }
             }
-        },
-        "/users/{id}/roles": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Assigner un rôle (admin)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "UUID utilisateur",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Rôle à assigner",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ops-server_internal_domain_user_models.AssignRoleInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.APIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "ops-server_internal_domain_audit_models.AuditAction": {
-            "description": "Type pour Swagger",
-            "type": "string",
-            "enum": [
-                "CREATE",
-                "UPDATE",
-                "DELETE",
-                "READ",
-                "LOGIN",
-                "LOGOUT",
-                "EXPORT"
+        "models.AddPermissionInput": {
+            "type": "object",
+            "required": [
+                "permissionId"
             ],
-            "x-enum-varnames": [
-                "AuditActionCreate",
-                "AuditActionUpdate",
-                "AuditActionDelete",
-                "AuditActionRead",
-                "AuditActionLogin",
-                "AuditActionLogout",
-                "AuditActionExport"
-            ]
+            "properties": {
+                "permissionId": {
+                    "type": "string"
+                }
+            }
         },
-        "ops-server_internal_domain_audit_models.AuditOutcome": {
-            "type": "string",
-            "enum": [
-                "success",
-                "failure",
-                "denied"
+        "models.AssignPermissionsInput": {
+            "type": "object",
+            "required": [
+                "permissionIds"
             ],
-            "x-enum-varnames": [
-                "AuditOutcomeSuccess",
-                "AuditOutcomeFailure",
-                "AuditOutcomeDenied"
-            ]
+            "properties": {
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
         },
-        "ops-server_internal_domain_audit_models.AuditTrailResponse": {
+        "models.AssignRoleInput": {
+            "type": "object",
+            "required": [
+                "roleId"
+            ],
+            "properties": {
+                "roleId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AuditTrailResponse": {
             "description": "Représentation publique d'un audit trail",
             "type": "object",
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/ops-server_internal_domain_audit_models.AuditAction"
+                    "type": "string"
                 },
                 "auditId": {
                     "type": "string"
@@ -1165,7 +2210,7 @@
                     "additionalProperties": {}
                 },
                 "outcome": {
-                    "$ref": "#/definitions/ops-server_internal_domain_audit_models.AuditOutcome"
+                    "type": "string"
                 },
                 "requestId": {
                     "type": "string"
@@ -1184,290 +2229,7 @@
                 }
             }
         },
-        "ops-server_internal_domain_audit_models.LogLevel": {
-            "type": "string",
-            "enum": [
-                "debug",
-                "info",
-                "warning",
-                "error",
-                "fatal"
-            ],
-            "x-enum-varnames": [
-                "LogLevelDebug",
-                "LogLevelInfo",
-                "LogLevelWarning",
-                "LogLevelError",
-                "LogLevelFatal"
-            ]
-        },
-        "ops-server_internal_domain_audit_models.LogResponse": {
-            "description": "Représentation publique d'un log applicatif persisté",
-            "type": "object",
-            "properties": {
-                "callerFile": {
-                    "type": "string"
-                },
-                "callerLine": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "level": {
-                    "$ref": "#/definitions/ops-server_internal_domain_audit_models.LogLevel"
-                },
-                "logId": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "requestId": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "traceId": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                }
-            }
-        },
-        "ops-server_internal_domain_metrics_models.EventCategory": {
-            "type": "string",
-            "enum": [
-                "auth",
-                "user",
-                "system",
-                "ingestion",
-                "api"
-            ],
-            "x-enum-varnames": [
-                "EventCategoryAuth",
-                "EventCategoryUser",
-                "EventCategorySystem",
-                "EventCategoryIngestion",
-                "EventCategoryAPI"
-            ]
-        },
-        "ops-server_internal_domain_metrics_models.EventResponse": {
-            "description": "Représentation publique d'un événement observable",
-            "type": "object",
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/ops-server_internal_domain_metrics_models.EventCategory"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "eventId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "occurredAt": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "requestId": {
-                    "type": "string"
-                },
-                "severity": {
-                    "$ref": "#/definitions/ops-server_internal_domain_metrics_models.EventSeverity"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                }
-            }
-        },
-        "ops-server_internal_domain_metrics_models.EventSeverity": {
-            "type": "string",
-            "enum": [
-                "info",
-                "warning",
-                "critical"
-            ],
-            "x-enum-varnames": [
-                "EventSeverityInfo",
-                "EventSeverityWarning",
-                "EventSeverityCritical"
-            ]
-        },
-        "ops-server_internal_domain_metrics_models.MetricPeriod": {
-            "type": "string",
-            "enum": [
-                "realtime",
-                "hourly",
-                "daily",
-                "weekly",
-                "monthly"
-            ],
-            "x-enum-varnames": [
-                "MetricPeriodRealtime",
-                "MetricPeriodHourly",
-                "MetricPeriodDaily",
-                "MetricPeriodWeekly",
-                "MetricPeriodMonthly"
-            ]
-        },
-        "ops-server_internal_domain_metrics_models.MetricResponse": {
-            "description": "Représentation publique d'une métrique",
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "metricId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "period": {
-                    "$ref": "#/definitions/ops-server_internal_domain_metrics_models.MetricPeriod"
-                },
-                "recordedAt": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/ops-server_internal_domain_metrics_models.MetricType"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "ops-server_internal_domain_metrics_models.MetricType": {
-            "type": "string",
-            "enum": [
-                "counter",
-                "gauge",
-                "histogram"
-            ],
-            "x-enum-comments": {
-                "MetricTypeCounter": "valeur toujours croissante",
-                "MetricTypeGauge": "valeur instantanée (peut baisser)",
-                "MetricTypeHistogram": "distribution de valeurs"
-            },
-            "x-enum-descriptions": [
-                "valeur toujours croissante",
-                "valeur instantanée (peut baisser)",
-                "distribution de valeurs"
-            ],
-            "x-enum-varnames": [
-                "MetricTypeCounter",
-                "MetricTypeGauge",
-                "MetricTypeHistogram"
-            ]
-        },
-        "ops-server_internal_domain_notification_models.NotificationResponse": {
-            "description": "Représentation publique d'une notification",
-            "type": "object",
-            "properties": {
-                "body": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "notificationId": {
-                    "type": "string"
-                },
-                "readAt": {
-                    "type": "string"
-                },
-                "retryCount": {
-                    "type": "integer"
-                },
-                "sentAt": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/ops-server_internal_domain_notification_models.NotificationStatus"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/ops-server_internal_domain_notification_models.NotificationType"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                }
-            }
-        },
-        "ops-server_internal_domain_notification_models.NotificationStatus": {
-            "type": "string",
-            "enum": [
-                "pending",
-                "sent",
-                "failed",
-                "read"
-            ],
-            "x-enum-varnames": [
-                "NotificationStatusPending",
-                "NotificationStatusSent",
-                "NotificationStatusFailed",
-                "NotificationStatusRead"
-            ]
-        },
-        "ops-server_internal_domain_notification_models.NotificationType": {
-            "type": "string",
-            "enum": [
-                "email",
-                "push",
-                "in_app",
-                "sms"
-            ],
-            "x-enum-varnames": [
-                "NotificationTypeEmail",
-                "NotificationTypePush",
-                "NotificationTypeInApp",
-                "NotificationTypeSMS"
-            ]
-        },
-        "ops-server_internal_domain_user_models.AssignRoleInput": {
-            "type": "object",
-            "required": [
-                "roleId"
-            ],
-            "properties": {
-                "roleId": {
-                    "type": "string"
-                }
-            }
-        },
-        "ops-server_internal_domain_user_models.AuthResponse": {
+        "models.AuthResponse": {
             "type": "object",
             "properties": {
                 "accessToken": {
@@ -1477,15 +2239,112 @@
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                    "$ref": "#/definitions/models.UserResponse"
                 }
             }
         },
-        "ops-server_internal_domain_user_models.CreateUserInput": {
-            "description": "Données pour créer un nouvel utilisateur",
+        "models.ConfigGeneralResponse": {
+            "type": "object",
+            "properties": {
+                "configId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CreateConfigGeneralInput": {
             "type": "object",
             "required": [
-                "email",
+                "data",
+                "entity",
+                "key"
+            ],
+            "properties": {
+                "data": {
+                    "description": "JSON libre",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreatePermissionInput": {
+            "type": "object",
+            "required": [
+                "action",
+                "resource"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "resource": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "models.CreateRoleInput": {
+            "type": "object",
+            "required": [
+                "displayName",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "displayName": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "isSystem": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                }
+            }
+        },
+        "models.CreateUserInput": {
+            "type": "object",
+            "required": [
                 "firstName",
                 "identifier",
                 "lastName",
@@ -1510,26 +2369,172 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.PermissionAction": {
-            "type": "string",
-            "enum": [
-                "read",
-                "write",
-                "delete",
-                "*"
-            ],
-            "x-enum-varnames": [
-                "ActionRead",
-                "ActionWrite",
-                "ActionDelete",
-                "ActionAll"
-            ]
+        "models.EventResponse": {
+            "description": "Représentation publique d'un événement observable",
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
         },
-        "ops-server_internal_domain_user_models.PermissionResponse": {
+        "models.LogResponse": {
+            "description": "Représentation publique d'un log applicatif persisté",
+            "type": "object",
+            "properties": {
+                "callerFile": {
+                    "type": "string"
+                },
+                "callerLine": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "level": {
+                    "type": "string"
+                },
+                "logId": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "traceId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MetricResponse": {
+            "description": "Représentation publique d'une métrique",
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "metricId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "recordedAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.NotificationResponse": {
+            "description": "Représentation publique d'une notification",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "notificationId": {
+                    "type": "string"
+                },
+                "readAt": {
+                    "type": "string"
+                },
+                "retryCount": {
+                    "type": "integer"
+                },
+                "sentAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PermissionResponse": {
             "type": "object",
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/ops-server_internal_domain_user_models.PermissionAction"
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "permissionId": {
                     "type": "string"
@@ -1539,10 +2544,13 @@
                 },
                 "slug": {
                     "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
-        "ops-server_internal_domain_user_models.RefreshTokenInput": {
+        "models.RefreshTokenInput": {
             "type": "object",
             "required": [
                 "refreshToken"
@@ -1553,20 +2561,7 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.RoleName": {
-            "type": "string",
-            "enum": [
-                "admin",
-                "ops",
-                "viewer"
-            ],
-            "x-enum-varnames": [
-                "RoleNameAdmin",
-                "RoleNameOps",
-                "RoleNameViewer"
-            ]
-        },
-        "ops-server_internal_domain_user_models.RoleResponse": {
+        "models.RoleResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1582,12 +2577,41 @@
                     "type": "boolean"
                 },
                 "name": {
-                    "$ref": "#/definitions/ops-server_internal_domain_user_models.RoleName"
+                    "type": "string"
                 },
                 "permissions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_user_models.PermissionResponse"
+                        "$ref": "#/definitions/models.PermissionResponse"
+                    }
+                },
+                "roleId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RoleSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "isSystem": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PermissionResponse"
                     }
                 },
                 "roleId": {
@@ -1595,7 +2619,7 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.SignInInput": {
+        "models.SignInInput": {
             "type": "object",
             "required": [
                 "identifier",
@@ -1610,7 +2634,42 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.UpdateUserInput": {
+        "models.UpdateConfigGeneralInput": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "isActive": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.UpdatePermissionInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateRoleInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "displayName": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "models.UpdateUserInput": {
             "type": "object",
             "properties": {
                 "firstName": {
@@ -1624,7 +2683,7 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.UserResponse": {
+        "models.UserResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1648,7 +2707,7 @@
                 "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_user_models.UserRoleResponse"
+                        "$ref": "#/definitions/models.UserRoleResponse"
                     }
                 },
                 "updatedAt": {
@@ -1659,7 +2718,7 @@
                 }
             }
         },
-        "ops-server_internal_domain_user_models.UserRoleResponse": {
+        "models.UserRoleResponse": {
             "type": "object",
             "properties": {
                 "assignedAt": {
@@ -1669,20 +2728,32 @@
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/ops-server_internal_domain_user_models.RoleResponse"
+                    "$ref": "#/definitions/models.RoleSummaryResponse"
                 },
                 "userId": {
                     "type": "string"
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_AuditTrailResponse": {
+        "ops-server_internal_interfaces_http_response.APIResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_AuditTrailResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_audit_models.AuditTrailResponse"
+                        "$ref": "#/definitions/models.AuditTrailResponse"
                     }
                 },
                 "limit": {
@@ -1699,13 +2770,13 @@
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_audit_models_LogResponse": {
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_ConfigGeneralResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_audit_models.LogResponse"
+                        "$ref": "#/definitions/models.ConfigGeneralResponse"
                     }
                 },
                 "limit": {
@@ -1722,13 +2793,13 @@
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_EventResponse": {
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_EventResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_metrics_models.EventResponse"
+                        "$ref": "#/definitions/models.EventResponse"
                     }
                 },
                 "limit": {
@@ -1745,13 +2816,13 @@
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_metrics_models_MetricResponse": {
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_LogResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_metrics_models.MetricResponse"
+                        "$ref": "#/definitions/models.LogResponse"
                     }
                 },
                 "limit": {
@@ -1768,13 +2839,13 @@
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_notification_models_NotificationResponse": {
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_MetricResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_notification_models.NotificationResponse"
+                        "$ref": "#/definitions/models.MetricResponse"
                     }
                 },
                 "limit": {
@@ -1791,13 +2862,82 @@
                 }
             }
         },
-        "ops-server_internal_interfaces_http_response.PaginatedData-ops-server_internal_domain_user_models_UserResponse": {
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_NotificationResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ops-server_internal_domain_user_models.UserResponse"
+                        "$ref": "#/definitions/models.NotificationResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_PermissionResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PermissionResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_RoleSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RoleSummaryResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ops-server_internal_interfaces_http_response.PaginatedData-models_UserResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserResponse"
                     }
                 },
                 "limit": {

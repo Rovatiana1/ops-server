@@ -16,39 +16,43 @@ import (
 	"ops-server/pkg/logger"
 	"ops-server/pkg/utils"
 
+	"ops-server/internal/infrastructure/ldap"
+
 	"ops-server/internal/domain/user/models"
 	"ops-server/internal/domain/user/repository"
 	redisInfra "ops-server/internal/infrastructure/redis"
 )
 
 // UserService définit les opérations métier sur les utilisateurs.
+// La gestion des rôles et permissions est déléguée au domaine rbac.
 type UserService interface {
 	Register(ctx context.Context, input *models.CreateUserInput) (*models.UserResponse, error)
 	SignIn(ctx context.Context, input *models.SignInInput) (*models.AuthResponse, error)
+	SignInLDAP(ctx context.Context, input *models.SignInInput) (*models.AuthResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*models.AuthResponse, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.UserResponse, error)
 	Update(ctx context.Context, id uuid.UUID, input *models.UpdateUserInput) (*models.UserResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, offset, limit int) ([]*models.UserResponse, int64, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
-	AssignRole(ctx context.Context, userID uuid.UUID, input *models.AssignRoleInput, assignedBy uuid.UUID) error
 }
 
 type userService struct {
-	repo   repository.UserRepository
-	cache  redisInfra.Cache
-	jwtCfg configs.JWTConfig
+	repo    repository.UserRepository
+	cache   redisInfra.Cache
+	jwtCfg  configs.JWTConfig
+	ldapSvc ldap.LdapService
 }
 
 func NewUserService(
 	repo repository.UserRepository,
 	cache redisInfra.Cache,
 	jwtCfg configs.JWTConfig,
+	ldapSvc ldap.LdapService,
 ) UserService {
-	return &userService{repo: repo, cache: cache, jwtCfg: jwtCfg}
+	return &userService{repo: repo, cache: cache, jwtCfg: jwtCfg, ldapSvc: ldapSvc}
 }
 
-// Register crée un nouveau compte utilisateur.
 func (s *userService) Register(ctx context.Context, input *models.CreateUserInput) (*models.UserResponse, error) {
 	log := logger.FromContext(ctx)
 
@@ -95,20 +99,75 @@ func (s *userService) SignIn(ctx context.Context, input *models.SignInInput) (*m
 	if !user.IsActive {
 		return nil, appErrors.New(appErrors.ErrCodeUserDisabled, "account is disabled")
 	}
-
 	if !utils.CheckPasswordHash(input.Password, user.Password) {
 		return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid identifier or password")
 	}
 
 	// Récupérer les rôles pour les inclure dans le token
-	roleNames := make([]string, 0, len(user.UserRoles))
-	for _, ur := range user.UserRoles {
-		if ur.Role.ID != uuid.Nil {
-			roleNames = append(roleNames, ur.Role.Name.String())
+	accessToken, err := s.generateAccessToken(user)
+	if err != nil {
+		return nil, appErrors.Internal(err)
+	}
+	refreshToken, err := s.generateRefreshToken(user)
+	if err != nil {
+		return nil, appErrors.Internal(err)
+	}
+
+	ttl := time.Duration(s.jwtCfg.RefreshTTL) * time.Minute
+	if err := s.cache.Set(ctx, refreshTokenKey(user.ID), refreshToken, ttl); err != nil {
+		return nil, appErrors.Internal(fmt.Errorf("failed to store refresh token: %w", err))
+	}
+
+	return &models.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user.ToResponse(),
+	}, nil
+}
+
+func (s *userService) SignInLDAP(ctx context.Context, input *models.SignInInput) (*models.AuthResponse, error) {
+	// 1. LDAP AUTH
+	ldapUser, err := s.ldapSvc.Authenticate(ctx, input.Identifier, input.Password)
+	if err != nil {
+		return nil, appErrors.New(appErrors.ErrCodeInvalidCredentials, "invalid ldap credentials")
+	}
+
+	// 2. CHECK USER EXISTS
+	user, err := s.repo.FindByIdentifier(ctx, input.Identifier)
+
+	if err != nil {
+		// USER NOT FOUND → AUTO CREATE 🔥
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			user = &models.User{
+				Identifier: ldapUser.Username,
+				Email:      ldapUser.Email,
+				FirstName:  ldapUser.FirstName,
+				LastName:   ldapUser.LastName,
+				IsActive:   true,
+				Password:   "", // ⚠️ no local password
+			}
+
+			if err := s.repo.Create(ctx, user); err != nil {
+				return nil, appErrors.Internal(err)
+			}
+
+		} else {
+			return nil, appErrors.Internal(err)
 		}
 	}
 
-	accessToken, err := s.generateAccessToken(user, roleNames)
+	// 3. UPDATE USER (sync LDAP → DB)
+	user.Email = ldapUser.Email
+	user.FirstName = ldapUser.FirstName
+	user.LastName = ldapUser.LastName
+
+	if err := s.repo.Update(ctx, user); err != nil {
+		return nil, appErrors.Internal(err)
+	}
+
+	// 4. GENERATE TOKENS
+	accessToken, err := s.generateAccessToken(user)
 	if err != nil {
 		return nil, appErrors.Internal(err)
 	}
@@ -118,10 +177,10 @@ func (s *userService) SignIn(ctx context.Context, input *models.SignInInput) (*m
 		return nil, appErrors.Internal(err)
 	}
 
-	key := refreshTokenKey(user.ID)
+	// 5. STORE REFRESH TOKEN (Redis)
 	ttl := time.Duration(s.jwtCfg.RefreshTTL) * time.Minute
-	if err := s.cache.Set(ctx, key, refreshToken, ttl); err != nil {
-		return nil, appErrors.Internal(fmt.Errorf("failed to store refresh token: %w", err))
+	if err := s.cache.Set(ctx, refreshTokenKey(user.ID), refreshToken, ttl); err != nil {
+		return nil, appErrors.Internal(err)
 	}
 
 	return &models.AuthResponse{
@@ -153,16 +212,10 @@ func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*m
 		return nil, appErrors.New(appErrors.ErrCodeUserNotFound, "user not found")
 	}
 
-	roleNames := make([]string, 0)
-	for _, ur := range user.UserRoles {
-		roleNames = append(roleNames, ur.Role.Name.String())
-	}
-
-	accessToken, err := s.generateAccessToken(user, roleNames)
+	newAccess, err := s.generateAccessToken(user)
 	if err != nil {
 		return nil, appErrors.Internal(err)
 	}
-
 	newRefresh, err := s.generateRefreshToken(user)
 	if err != nil {
 		return nil, appErrors.Internal(err)
@@ -172,7 +225,7 @@ func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (*m
 	_ = s.cache.Set(ctx, refreshTokenKey(userID), newRefresh, ttl)
 
 	return &models.AuthResponse{
-		AccessToken:  accessToken,
+		AccessToken:  newAccess,
 		RefreshToken: newRefresh,
 		User:         user.ToResponse(),
 	}, nil
@@ -199,7 +252,6 @@ func (s *userService) Update(ctx context.Context, id uuid.UUID, input *models.Up
 		}
 		return nil, appErrors.Wrap(appErrors.ErrCodeDBQuery, "failed to fetch user", err)
 	}
-
 	if input.FirstName != nil {
 		user.FirstName = *input.FirstName
 	}
@@ -209,7 +261,6 @@ func (s *userService) Update(ctx context.Context, id uuid.UUID, input *models.Up
 	if input.IsActive != nil {
 		user.IsActive = *input.IsActive
 	}
-
 	if err := s.repo.Update(ctx, user); err != nil {
 		return nil, appErrors.Wrap(appErrors.ErrCodeDBQuery, "failed to update user", err)
 	}
@@ -250,11 +301,6 @@ func (s *userService) Logout(ctx context.Context, userID uuid.UUID) error {
 	return s.cache.Delete(ctx, refreshTokenKey(userID))
 }
 
-// AssignRole assigne un rôle à un utilisateur.
-func (s *userService) AssignRole(ctx context.Context, userID uuid.UUID, input *models.AssignRoleInput, assignedBy uuid.UUID) error {
-	return s.repo.AssignRole(ctx, userID, input.RoleID, assignedBy)
-}
-
 // ── JWT ───────────────────────────────────────────────────────────────────────
 
 type jwtClaims struct {
@@ -262,9 +308,9 @@ type jwtClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (s *userService) generateAccessToken(user *models.User, roles []string) (string, error) {
+func (s *userService) generateAccessToken(user *models.User) (string, error) {
 	claims := jwtClaims{
-		Roles: roles,
+		Roles: user.RoleNames(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   user.ID.String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(s.jwtCfg.AccessTTL) * time.Minute)),

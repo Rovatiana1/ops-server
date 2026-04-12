@@ -27,8 +27,8 @@ test-coverage:
 swagger:
 	@which swag > /dev/null 2>&1 || go install github.com/swaggo/swag/cmd/swag@latest
 	swag init \
-		-g docs/swagger.go \
-		--dir .,./internal/domain/user/controller,./internal/domain/notification/controller,./internal/domain/metrics/controller,./internal/domain/audit/controller \
+		-g docs/docs.go \
+		--dir .,./internal/domain,./internal/interfaces/http \
 		--output ./docs \
 		--parseDependency \
 		--parseInternal \

@@ -12,11 +12,6 @@ import (
 	appErrors "ops-server/pkg/errors"
 )
 
-// Pour Swagger uniquement
-// @Description Type pour Swagger
-type AuditActionEnum = models.AuditAction
-type AuditOutcomeEnum = models.AuditOutcome
-
 // AuditController gère les routes HTTP d'audit.
 type AuditController struct {
 	svc service.AuditService
@@ -31,8 +26,8 @@ func NewAuditController(svc service.AuditService) *AuditController {
 // @Tags         audit
 // @Security     BearerAuth
 // @Param        resource  query  string               false  "Ressource (ex: user)"
-// @Param        action    query  AuditActionEnum      false  "Action"
-// @Param        outcome   query  AuditOutcomeEnum     false  "Résultat"
+// @Param        action    query  models.AuditAction      false  "Action"
+// @Param        outcome   query  models.AuditOutcome     false  "Résultat"
 // @Param        userId    query  string               false  "UUID utilisateur"
 // @Param        from      query  string               false  "Date début (RFC3339)"
 // @Param        to        query  string               false  "Date fin (RFC3339)"

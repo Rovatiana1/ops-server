@@ -1,30 +1,3 @@
-// package config
-
-// import (
-// 	"log"
-// 	"os"
-// )
-
-// type Config struct {
-// 	Environment string
-// }
-
-// func LoadConfig() *Config {
-// 	env := os.Getenv("ENVIRONMENT")
-// 	if env == "" {
-// 		env = "development"
-// 	}
-// 	return &Config{Environment: env}
-// }
-
-// func MustLoadConfig() *Config {
-// 	cfg := LoadConfig()
-// 	if cfg == nil {
-// 		log.Fatal("failed to load config")
-// 	}
-// 	return cfg
-// }
-
 package configs
 
 import (
@@ -42,6 +15,7 @@ type Config struct {
 	JWT           JWTConfig           `mapstructure:"jwt"`
 	RateLimit     RateLimitConfig     `mapstructure:"rate_limit"`
 	Observability ObservabilityConfig `mapstructure:"observability"`
+	Proxy         ProxyConfig         `mapstructure:"proxy"`
 }
 
 type AppConfig struct {
@@ -115,6 +89,11 @@ type RateLimitConfig struct {
 type ObservabilityConfig struct {
 	PrometheusPort int    `mapstructure:"prometheus_port"`
 	LogLevel       string `mapstructure:"log_level"`
+}
+
+type ProxyConfig struct {
+	Sampling string `mapstructure:"sampling"`
+	Billing  string `mapstructure:"billing"`
 }
 
 // Load reads configuration from file and environment variables.

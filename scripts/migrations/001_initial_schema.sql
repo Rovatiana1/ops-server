@@ -209,14 +209,139 @@ INSERT INTO roles (name, display_name, description, is_system) VALUES
   ('viewer',  'Observateur',    'Lecture seule',          TRUE)
 ON CONFLICT DO NOTHING;
 
--- ── Seed permissions ──────────────────────────────────────────────────────────
+-- ── Seed permissions (granular RBAC) ──────────────────────────────────────────
 INSERT INTO permissions (resource, action, description) VALUES
-  ('user',         'read',   'Lire les utilisateurs'),
-  ('user',         'write',  'Modifier les utilisateurs'),
-  ('user',         'delete', 'Supprimer les utilisateurs'),
-  ('notification', 'read',   'Lire les notifications'),
-  ('notification', 'write',  'Envoyer des notifications'),
-  ('metrics',      'read',   'Consulter les métriques'),
-  ('audit',        'read',   'Consulter les audits'),
-  ('*',            '*',      'Accès total')
+
+  -- ── Operations ─────────────────────────────────────────────────────────────
+  ('run',        'create', 'Créer un run de sampling'),
+  ('run',        'start',  'Démarrer un run de sampling'),
+  ('run',        'pause',  'Mettre en pause un run de sampling'),
+  ('run',        'stop',   'Arrêter un run de sampling'),
+  ('run',        'read',   'Consulter les runs de sampling'),
+
+  ('release',    'force',  'Forcer une release'),
+  ('release',    'manage_targets', 'Gérer les cibles de publication'),
+
+  ('ingestion',  'read',   'Consulter le pipeline et la santé des sources'),
+  ('ingestion',  'manual_upload', 'Uploader des données manuellement (Excel/JSON)'),
+
+
+  -- ── Configuration ─────────────────────────────────────────────────────────
+  ('plan',       'create', 'Créer un plan de sampling'),
+  ('plan',       'update', 'Modifier un plan de sampling'),
+  ('plan',       'read',   'Consulter les plans de sampling'),
+  ('plan',       'delete', 'Supprimer un plan de sampling'),
+
+  ('settings',   'update', 'Modifier la configuration globale du système'),
+  ('settings',   'read',   'Consulter la configuration globale'),
+
+  ('attribute',  'create', 'Créer des attributs de schéma'),
+  ('attribute',  'update', 'Modifier des attributs de schéma'),
+  ('attribute',  'delete', 'Supprimer des attributs de schéma'),
+  ('attribute',  'read',   'Consulter les attributs de schéma'),
+
+  ('simulator',  'execute', 'Exécuter des simulations de sampling'),
+
+
+  -- ── Administration ────────────────────────────────────────────────────────
+  ('user',       'create', 'Créer des utilisateurs'),
+  ('user',       'read',   'Lire les utilisateurs'),
+  ('user',       'update', 'Modifier les utilisateurs'),
+  ('user',       'delete', 'Supprimer les utilisateurs'),
+
+  ('role',       'create', 'Créer des rôles'),
+  ('role',       'read',   'Consulter les rôles'),
+  ('role',       'update', 'Modifier les rôles'),
+  ('role',       'delete', 'Supprimer les rôles'),
+  ('role',       'assign', 'Assigner des rôles aux utilisateurs'),
+
+  ('system_logs','read',   'Accéder aux logs système bas niveau'),
+
+
+  -- ── Audit & Analytics ─────────────────────────────────────────────────────
+  ('audit',      'read',   'Consulter les logs d’audit'),
+  ('audit',      'replay', 'Rejouer les décisions de sampling'),
+
+  ('dashboard',  'read',   'Consulter les dashboards temps réel'),
+  ('dashboard',  'export', 'Exporter les données dashboards (CSV/Excel)'),
+
+
+  -- ── Legacy / Generic (optionnel mais utile) ───────────────────────────────
+  ('notification','read',   'Lire les notifications'),
+  ('notification','write',  'Envoyer des notifications'),
+
+  ('metrics',     'read',   'Consulter les métriques'),
+
+
+  -- ── Super Admin ───────────────────────────────────────────────────────────
+  ('*',          '*',      'Accès total')
+
+ON CONFLICT DO NOTHING;
+
+
+-- ── configs (dynamic system configuration) ───────────────────────────────────
+-- ── configs ──────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS configs (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity      VARCHAR(100) NOT NULL,
+    key         VARCHAR(100) NOT NULL,
+    data        JSONB        NOT NULL,
+    version     INT          NOT NULL DEFAULT 1,
+    is_active   BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_by  UUID REFERENCES users(id),
+    updated_by  UUID REFERENCES users(id),
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    deleted_at  TIMESTAMPTZ
+);
+
+-- Unicité par entity + key (non supprimé)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_configs_entity_key_active
+    ON configs (entity, key)
+    WHERE deleted_at IS NULL;
+
+-- Lookup rapide (CRITIQUE pour runtime)
+CREATE INDEX IF NOT EXISTS idx_configs_entity_key
+    ON configs (entity, key)
+    WHERE is_active = TRUE AND deleted_at IS NULL;
+
+-- Soft delete
+CREATE INDEX IF NOT EXISTS idx_configs_deleted_at
+    ON configs (deleted_at);
+
+-- JSONB queries (si tu filtres dedans)
+CREATE INDEX IF NOT EXISTS idx_configs_data
+    ON configs USING GIN (data);
+
+
+DROP TRIGGER IF EXISTS trigger_configs_updated_at ON configs;
+
+CREATE TRIGGER trigger_configs_updated_at
+    BEFORE UPDATE ON configs
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+    -- ── Seed: LDAP configuration ────────────────────────────────────────────────
+INSERT INTO configs (entity, key, data, version, is_active)
+VALUES (
+    'ldap',
+    'default',
+    '{
+        "host": "ldap.example.com",
+        "port": 389,
+        "baseDN": "dc=example,dc=com",
+        "bindDN": "cn=admin,dc=example,dc=com",
+        "password": "admin123",
+        "userFilter": "(uid=%s)",
+        "attributes": {
+            "username": "uid",
+            "email": "mail",
+            "firstName": "givenName",
+            "lastName": "sn"
+        },
+        "tls": false,
+        "timeout": 5
+    }'::jsonb,
+    1,
+    TRUE
+)
 ON CONFLICT DO NOTHING;
